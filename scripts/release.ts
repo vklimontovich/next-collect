@@ -38,7 +38,7 @@ function runProjectCommand(
     error?: (cmd: string, status: number) => string;
   } = {}
 ) {
-  const print = opts?.print || "error";
+  const print = opts?.print || "all";
   console.log(`Running \`${command}\`...`);
   const { status, stderr, stdout } = child_process.spawnSync(command, {
     cwd: path.resolve(__dirname, ".."),

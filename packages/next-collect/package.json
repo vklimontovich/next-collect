@@ -1,9 +1,19 @@
 {
   "name": "next-collect",
   "version": "0.0.0",
+  "main": "./dist/index.js",
   "files": [
-    "./dist/*"
+    "dist"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jitsucom/next-collect",
+    "directory": "packages/next-collect"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "private": false,
   "exports": {
     "./*": "./dist/*"
   },
