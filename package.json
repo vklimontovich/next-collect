@@ -26,7 +26,7 @@
     "npm": ">=1000",
     "node": ">=14"
   },
-  "packageManager": "yarn@1.22.17",
+  "packageManager": "pnpm",
   "repository": "jitsucom/next-collect",
   "author": "vklimontovich <vladimir@jitsu.com>",
   "auto": {
