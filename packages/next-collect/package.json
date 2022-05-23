@@ -1,7 +1,8 @@
 {
   "name": "next-collect",
   "version": "0.0.0",
-  "main": "./dist/index.js",
+  "main": "index.js",
+  "module": "index.js",
   "files": [
     "dist"
   ],
