@@ -125,7 +125,7 @@ The easiest way to get user id and email is to save it to cookies, and get it fr
 
 Furthermore, this example adds `projectId` to event. `projectId` is taken from page property. You can add as many properties as you want
 
-## Client-Side Data Collection
+## Client-Side Data Collection - `useCollect()` hook
 
 Not all events can be tracked on server-side. Some events happen when user interacts with UI, and no server code is touch.
 
