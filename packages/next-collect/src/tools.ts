@@ -93,7 +93,7 @@ export function createPrefixMap<T>(map: [string, T][]): PrefixMap<T> {
   return {
     get(element: string) {
       const fullMatch = fullUrls.get(element)
-      if (fullMatch) {
+      if (fullMatch !== undefined) {
         return fullMatch
       }
       const partialMatch = prefixes.find(([key]) => element.startsWith(key))
@@ -155,9 +155,6 @@ export function flatten(
   data: Record<keyof any, any>,
   opts?: { delimiter?: string }
 ): Record<string, string | boolean | number | null> {
-  const result: Record<string, string | boolean | number | null> = {}
-  for (const [key, value] of Object.entries(data)) {
-  }
   return Object.entries(data).reduce((res, [key, value]) => {
     if (value === undefined || value === null) {
       return { ...res, [key]: null }

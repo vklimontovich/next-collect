@@ -1,30 +1,19 @@
 import { NextMiddleware, NextRequest, NextResponse } from "next/server"
-import { serialize } from "cookie"
-import { deepMerge, removeSuffix } from "./tools"
+import { deepMerge} from "./tools"
 import {
   ClickId,
   PageEvent,
   PublicUrl,
-  isUtmCode,
-  UtmCode,
-  getHostWithPort,
-  getQueryString,
-  getFullUrl,
-  isClickId,
   UserProperties,
-  UrlProtocol,
-  AbsoluteUrlPath,
   EventSinkOpts,
   parseEventTypesMap,
   safeCall,
   parseDriverShortcut,
   getEventHandler,
-  randomId,
   defaultCollectApiRoute,
   ClientSideCollectRequest,
-  ClientSideCollectResponse,
-  isDefaultPort,
-} from "./index"
+
+} from "./index";
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
 import { IncomingMessage } from "http"
 import { defaultCookieName, nextApiShim, NextRequestShim, pageMiddlewareShim } from "./next-shim"
@@ -99,9 +88,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
         res.json({ ok: true })
       } catch (e: any) {
         res.json({ ok: false, error: `${e?.message || "Unknown error"}` })
-        console.error(
-
-        )
+        console.error()
       }
     },
 
@@ -170,14 +157,10 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
         return clientSideProps ? NextResponse.json({ ok: true }) : res
       } catch (e: any) {
         if (!isCsrRequest) {
-          console.error(
-
-          )
+          console.error()
           return res
         } else {
-          console.error(
-
-          )
+          console.error()
           return NextResponse.json({ ok: false, error: `${e?.message || "Unknown error"}` })
         }
       }

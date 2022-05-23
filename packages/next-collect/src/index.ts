@@ -219,9 +219,7 @@ export function safeCall<T>(callable: () => T, message: string, defaultVal: T) {
   try {
     return callable()
   } catch (e) {
-    console.error(
-
-    )
+    console.error()
     return {}
   }
 }

@@ -10,6 +10,7 @@ import {
 } from "next-collect/client"
 import { GetServerSideProps } from "next"
 import { parseUserCookie } from "../lib/next-collect-settings"
+import Head from "next/head"
 
 // function useCollector(): EventCollectionClient {
 //     const options: EventSinkContextOptions | null = useContext(EventCollectionContext)
@@ -74,6 +75,9 @@ function UserId(props: { user: { id?: string; email?: string } }) {
 const IndexPage: React.FC<any> = props => {
   return (
     <div className="flex justify-center">
+      <Head>
+        <title>next-collect demo app</title>
+      </Head>
       <div className="p-6" style={{ maxWidth: "120rem", minWidth: "60rem" }}>
         <h1 className="text-3xl">next-collect demo app</h1>
         <div>

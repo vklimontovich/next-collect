@@ -1,5 +1,8 @@
 {
   "pipeline": {
+    "test": {
+      "dependsOn": ["build","^test"]
+    },
     "clean": {
       "dependsOn": ["^clean"]
     },
