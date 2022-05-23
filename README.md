@@ -232,4 +232,9 @@ A table with all fields should be created prior to using this destination.
 </table>
 
 
+## Contributing
+
+Please see [CONTRIBUTING.md](CONTRIBUTING.md)
+
+
 

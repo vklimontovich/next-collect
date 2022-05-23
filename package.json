@@ -21,8 +21,10 @@
     "turbo": "latest"
   },
   "engines": {
-    "npm": ">=7.0.0",
-    "node": ">=14.0.0"
+    "yarn": ">=1000",
+    "pnpm": ">=3",
+    "npm": ">=1000",
+    "node": ">=14"
   },
   "packageManager": "yarn@1.22.17",
   "repository": "jitsucom/next-collect",
