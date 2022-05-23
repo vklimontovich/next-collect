@@ -1,5 +1,5 @@
 {
-  "tag": "canary",
+  "tag": "alpha",
   "base": "0.0.1",
   "counter": 22
 }

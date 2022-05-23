@@ -220,8 +220,7 @@ export function safeCall<T>(callable: () => T, message: string, defaultVal: T) {
     return callable()
   } catch (e) {
     console.error(
-      `[EventSink - WARNING] Unexpected error during ${message}. This doesn't break the app, however some event fields might be missing`,
-      e
+
     )
     return {}
   }

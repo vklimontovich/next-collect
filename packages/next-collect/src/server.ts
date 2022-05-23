@@ -100,8 +100,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
       } catch (e: any) {
         res.json({ ok: false, error: `${e?.message || "Unknown error"}` })
         console.error(
-          `[next-collect] Unexpected error during collecti api call. This doesn't break the app, but event won't be properly tracked.`,
-          e
+
         )
       }
     },
@@ -172,14 +171,12 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
       } catch (e: any) {
         if (!isCsrRequest) {
           console.error(
-            `[EventSink - WARNING] Unexpected error during event sink processing. This doesn't break the app, however event won't be properly tracked.`,
-            e
+
           )
           return res
         } else {
           console.error(
-            `[EventSink - WARNING] Unexpected error CSR processing at ${req.nextUrl.pathname}. This doesn't break the app, however event won't be properly tracked.`,
-            e
+
           )
           return NextResponse.json({ ok: false, error: `${e?.message || "Unknown error"}` })
         }
