@@ -1,8 +1,14 @@
 {
   "pipeline": {
+    "clean": {
+      "dependsOn": ["^clean"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "clean", "lint"],
       "outputs": ["dist/**", ".next/**"]
+    },
+    "prettier:fix": {
+      "dependsOn": ["^prettier:fix"]
     },
     "lint": {
       "outputs": []

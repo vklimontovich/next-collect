@@ -1,0 +1,41 @@
+{
+  "name": "next-collect",
+  "version": "0.0.0",
+  "files": [
+    "./dist/*"
+  ],
+  "exports": {
+    "./*": "./dist/*"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "./dist/*"
+      ]
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "prettier:check": "prettier --check --config ../common-configs/.prettierrc.json --ignore-path ../common-configs/.prettierignore .",
+    "prettier:fix": "prettier --write --config ../common-configs/.prettierrc.json --ignore-path ../common-configs/.prettierignore .",
+    "build": "tsc -p .",
+    "clean": "rm -rf ./next",
+    "dev": "tsc -p . --watch --sourceMap --declarationMap",
+    "lint": "yarn prettier:check"
+  },
+  "dependencies": {
+    "cookie": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.5.0",
+    "@types/react": "^18.0.9",
+    "@types/react-dom": "^18.0.4",
+    "common-configs": "*",
+    "typescript": "^4.5.2"
+  },
+  "peerDependencies": {
+    "next": "~12.0.0",
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0"
+  }
+}

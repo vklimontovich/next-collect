@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+**/.babelrc
+**/.eslintrc.json
+**/package.json
+**/tailwind.config.js
+**/tsconfig.json
+**/tsconfig.paths.json
+**/generated/
+**/.next/
