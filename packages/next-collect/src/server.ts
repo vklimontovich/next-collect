@@ -1,5 +1,5 @@
 import { NextMiddleware, NextRequest, NextResponse } from "next/server"
-import { deepMerge} from "./tools"
+import { deepMerge } from "./tools"
 import {
   ClickId,
   PageEvent,
@@ -12,8 +12,7 @@ import {
   getEventHandler,
   defaultCollectApiRoute,
   ClientSideCollectRequest,
-
-} from "./index";
+} from "./index"
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
 import { IncomingMessage } from "http"
 import { defaultCookieName, nextApiShim, NextRequestShim, pageMiddlewareShim } from "./next-shim"

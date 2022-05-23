@@ -86,15 +86,17 @@ async function run(args: any) {
   try {
     saveVersion({ ...version, counter: version.counter + 1 });
     runProjectCommand(
-      `pnpm publish --filter next-collect --no-git-checks ${
+      `pnpm publish --tag canary --filter next-collect --no-git-checks ${
         args.publish ? "" : "--dry-run"
       }`
     );
-    runProjectCommand(`git add .versionrc`);
-    runProjectCommand(
-      `git commit -m 'chore: saved next version for canary releases, last canary - ${releaseVersion} '`
-    );
-    runProjectCommand(`git tag -a v${releaseVersion} -m "Release ${releaseVersion}"`);
+    if (args.publish) {
+      runProjectCommand(`git add .versionrc`);
+      runProjectCommand(
+          `git commit -m 'chore: saved next version for canary releases, last canary - ${releaseVersion} '`
+      );
+      runProjectCommand(`git tag -a v${releaseVersion} -m "Release ${releaseVersion}"`);
+    }
   } finally {
     try {
       runProjectCommand(`pnpm version --ws --no-git-tag-version 0.0.0`);
