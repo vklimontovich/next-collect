@@ -1,6 +1,6 @@
 {
   "name": "turborepo-basic-shared",
-  "version": "0.0.0",
+  "version": "0.0.1-alpha.1",
   "private": true,
   "workspaces": [
     "apps/*",
@@ -9,12 +9,13 @@
   "scripts": {
     "clean": "turbo run clean --parallel",
     "build": "turbo run build",
-    "beachball": "beachball",
+    "auto": "auto",
     "dev": "turbo run dev --parallel",
     "lint": "turbo run lint",
     "prettier:fix": "turbo run prettier:fix"
   },
   "devDependencies": {
+    "auto": "^10.37.0",
     "beachball": "^2.22.3",
     "prettier": "latest",
     "turbo": "latest"
@@ -23,5 +24,12 @@
     "npm": ">=7.0.0",
     "node": ">=14.0.0"
   },
-  "packageManager": "yarn@1.22.17"
+  "packageManager": "yarn@1.22.17",
+  "repository": "jitsucom/next-collect",
+  "author": "vklimontovich <vladimir@jitsu.com>",
+  "auto": {
+    "plugins": [
+      "npm"
+    ]
+  }
 }
