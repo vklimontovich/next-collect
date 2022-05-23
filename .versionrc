@@ -1,0 +1,5 @@
+{
+  "tag": "canary",
+  "base": "0.0.1",
+  "counter": 21
+}
