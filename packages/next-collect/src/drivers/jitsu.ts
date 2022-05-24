@@ -16,7 +16,7 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
   if (!jitsuKey) {
     throw new Error(`Jitsu driver is mis-configured. Either opts.key option, or JITSU_KEY env car should be defined`)
   }
-  const [event, extra] = splitObject(_event, ...defaultPageEventProps)
+  const [event, extra] = splitObject(_event, defaultPageEventProps)
 
   const jitsuUrl = `${removeSuffix(
     opts?.server || process.env.JITSU_SERVER || "https://t.jitsu.com",

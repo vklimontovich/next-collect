@@ -47,7 +47,7 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
       timestamp: nowIso,
     })
   }
-  const [baseEvent, extra] = splitObject(_event, ...defaultPageEventProps)
+  const [baseEvent, extra] = splitObject(_event, defaultPageEventProps)
   if (baseEvent.eventType === "page_view") {
     batch.push({
       type: "page",
