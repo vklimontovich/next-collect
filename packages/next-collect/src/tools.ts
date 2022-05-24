@@ -162,7 +162,6 @@ export function flatten(
       return { ...res, [key]: JSON.stringify(value) }
     } else if (typeof value === "object") {
       const flatChild = mapKeys(flatten(value), k => `${key}${opts?.delimiter || "_"}${k}`)
-      console.log(`Flat child of (${JSON.stringify(value)}) => `, flatten(value))
       return { ...res, ...flatChild }
     } else {
       return { ...res, [key]: value }
