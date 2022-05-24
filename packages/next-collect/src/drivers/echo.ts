@@ -37,16 +37,22 @@ type ConsoleStyle = {
   [key in StyleType]: StyleFunc
 }
 
-const style = Object.entries(styleTags).reduce(
+const style: ConsoleStyle = Object.entries(styleTags).reduce(
   (acc, [style, sequence]) => ({ ...acc, [style as StyleType]: (str: string) => `${sequence}${str}${reset}` }),
   {}
 ) as ConsoleStyle
 
+const emptyStyle: ConsoleStyle = Object.entries(styleTags).reduce(
+  (acc, [style]) => ({ ...acc, [style as StyleType]: (str: string) => str }),
+  {}
+) as ConsoleStyle
+
 export type EchoDriverOpts = {
-  format: "json" | "table"
+  format?: "json" | "table"
+  disableColor?: boolean
 }
 
-function toTable(event: Record<keyof any, any>) {
+function toTable(event: Record<keyof any, any>, style: ConsoleStyle) {
   const flat = flatten(event, { delimiter: "." })
   const maxKeyLen = Math.max(...Object.keys(flat).map(k => k.length))
 
@@ -59,12 +65,13 @@ function toTable(event: Record<keyof any, any>) {
 }
 
 export const echoDriver: EventSinkDriver<EchoDriverOpts> = opts => {
+  const _style = opts.disableColor ? emptyStyle : style
   const format = opts?.format || "table"
-  return (event, ctx) => {
+  return event => {
     console.log(
-      `${style.bold(style.green("[NextCollect:echo driver]"))} processing event ${style.bold(
+      `${_style.bold(_style.green("[NextCollect:echo driver]"))} processing event ${_style.bold(
         event.eventType || "uknown_event"
-      )}\n` + (format === "json" ? JSON.stringify(event, null, 2) : toTable(event))
+      )}\n` + (format === "json" ? JSON.stringify(event, null, 2) : toTable(event, _style))
     )
     return Promise.resolve()
   }

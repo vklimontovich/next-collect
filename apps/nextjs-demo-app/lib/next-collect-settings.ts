@@ -3,7 +3,16 @@ import { NextMiddlewareOpts } from "next-collect/server"
 import { NextRequest } from "next/server"
 
 export const nextCollectBasicSettings: EventSinkOpts = {
-  drivers: [process.env.JITSU_KEY && "jitsu", "echo"],
+  drivers: [
+    process.env.JITSU_KEY && "jitsu",
+    {
+      type: "echo",
+      opts: {
+        format: "table",
+        disableColor: true,
+      },
+    },
+  ],
   eventTypes: [
     { "/api/collect-api": null },
     { "/api*": "api_call" },
