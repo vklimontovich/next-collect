@@ -56,8 +56,8 @@ const knownUtmCodeSet = new Set(knownUtmCodeNames.map(m => m.toLowerCase()))
 
 export type UtmCode = typeof knownUtmCodeNames[number] | `utm_${string}`
 
-export const knownClickIdNames = ["gclid"]
-const knownClickIdNamesSet = new Set(knownUtmCodeNames.map(n => n.toLowerCase()))
+export const knownClickIdNames = ["gclid", "fbclid", "dclid"]
+const knownClickIdNamesSet = new Set(knownClickIdNames.map(n => n.toLowerCase()))
 export type ClickId = typeof knownClickIdNames[number]
 
 export type UrlProtocol = "http" | "https"

@@ -1,6 +1,7 @@
 import * as child_process from "child_process";
 import * as path from "path";
 import * as fs from "fs";
+import * as process from "process";
 
 const minimist = require("minimist");
 
@@ -27,7 +28,7 @@ function saveVersion(v: Version) {
 }
 
 function getFromCli(command: string): string {
-  const { stdout } = runProjectCommand(command);
+  const { stdout } = runProjectCommand(command, { print: "error" });
   return stdout.toString().trim();
 }
 
