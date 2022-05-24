@@ -95,14 +95,12 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
     ...(opts?.extraColumns || []),
   ]
   const [base, extra] = splitObject(event as any, keepColumns)
-  console.log("Split " + JSON.stringify(keepColumns), base, extra)
   const objectToInsert = {
     ...flatten(base, { stopPaths: ["utms", "clickIds", "page"] }),
     extra,
     timestamp: base.timestamp || new Date(),
     queryParams: event.queryString && event.queryString.length > 0 ? parseQueryString(event.queryString) : {},
   }
-  console.log("Inserting", objectToInsert)
   if (!url) {
     throw new Error(`Please define opts.url or env.POSTGREST_URL`)
   }
