@@ -1,4 +1,15 @@
-import { createPrefixMap, deepMerge, flatten, removeSuffix, sanitizeObject } from "../src/tools"
+import {
+  createPrefixMap,
+  deepClone,
+  deepDelete,
+  deepGet,
+  deepMerge,
+  deepSet,
+  flatten,
+  removeSuffix,
+  sanitizeObject,
+  splitObject,
+} from "../src/tools"
 
 test("removeSuffix", () => {
   expect(removeSuffix("https://host.com/", "/")).toBe("https://host.com")
@@ -40,16 +51,63 @@ test("prefixMap", () => {
     ["/api*", "api_event"],
     ["/*", "page_event"],
   ])
-  // expect(map.get("/any_path")).toBe("page_event")
-  // expect(map.get("/api/test")).toBe("api_event")
-  // expect(map.get("/specific/page")).toBe("page2")
-  // expect(map.get("/img/cat.png")).toBe(null)
+  expect(map.get("/any_path")).toBe("page_event")
+  expect(map.get("/api/test")).toBe("api_event")
+  expect(map.get("/specific/page")).toBe("page2")
+  expect(map.get("/img/cat.png")).toBe(null)
   expect(map.get("/api/endpoint")).toBe(null)
-  // expect(map.get("/favicon.ico")).toBe("$skip")
+  expect(map.get("/favicon.ico")).toBe("$skip")
 
-  // expect(() => {
-  //   createPrefixMap([["*a*", "test"]])
-  // }).toThrow()
+  expect(() => {
+    createPrefixMap([["*a*", "test"]])
+  }).toThrow()
+})
+test("testSplit", () => {
+  const obj = {
+    a: {
+      b: 1,
+      d: 2,
+    },
+    c: 4,
+    d: 5,
+  }
+  const [base, extra] = splitObject(obj, ["d", ["a", "b"]])
+
+  expect(base).toEqual({
+    a: { b: 1 },
+    d: 5,
+  })
+  expect(extra).toEqual({
+    a: { d: 2 },
+    c: 4,
+  })
+})
+
+test("deepClone/Set/Get/Delete", () => {
+  const obj: any = {
+    a: 1,
+    b: {
+      c: 2,
+      d: {
+        e: 3,
+      },
+    },
+  }
+  expect(deepGet({ a: 1 }, ["a"])).toBe(1)
+
+  expect(deepClone(obj)).toEqual(obj)
+  deepSet(obj, ["b", "c"], 4)
+  expect(obj.b.c).toBe(4)
+  expect(deepGet(obj, ["b", "d", "e"])).toBe(3)
+  expect(deepGet(obj, ["b", "d", "non-existing"])).toBe(undefined)
+  expect(deepGet(obj, ["not-prop", "d", "non-existing"])).toBe(undefined)
+  deepSet(obj, ["x", "y", "z"], "a")
+  expect(obj?.x?.y?.z).toBe("a")
+  deepDelete(obj, ["x", "y", "z"])
+  expect(obj?.x?.y?.z).toBe(undefined)
+  expect(obj?.x?.y).toEqual({})
+  deepDelete(obj, ["x"])
+  expect(obj?.x).toBe(undefined)
 })
 
 test("deepMerge", () => {

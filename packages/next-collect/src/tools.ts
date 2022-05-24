@@ -105,16 +105,68 @@ export function createPrefixMap<T>(map: [string, T][]): PrefixMap<T> {
   }
 }
 
-export function isObject(object: any): boolean {
+export function isObject(object: any) {
   return object && typeof object === "object" && !Array.isArray(object)
 }
 
-export function splitObject<T, P extends keyof T>(obj: T, ...props: P[]): [Pick<T, P>, Omit<T, P>] {
+export function deepSet(obj: any, _path: (keyof any)[], val: any) {
+  const path = [..._path]
+  if (path.length === 1) {
+    obj[path[0]] = val
+    return
+  }
+  const key = path.shift() as string
+  if (obj[key] === undefined) {
+    obj[key] = {}
+  }
+  deepSet(obj[key], path, val)
+}
+
+export function deepDelete(obj: any, path: (keyof any)[]) {
+  if (path.length === 1) {
+    delete obj[path[0]]
+    return
+  }
+  const key = path.shift() as string
+  if (obj[key] !== undefined) {
+    deepDelete(obj[key], path)
+  }
+}
+
+export function deepGet(obj: any, _path: (keyof any)[]): any {
+  const path = [..._path]
+  if (path.length === 1) {
+    return obj[path[0]]
+  }
+  const key = path.shift() as string
+  if (obj[key] === undefined) {
+    return undefined
+  }
+  return deepGet(obj[key], path)
+}
+
+export function deepClone(obj: any): any {
+  if (typeof obj !== "object" || obj === null) {
+    return obj
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(deepClone)
+  }
+  return Object.entries(obj).reduce((res, [key, val]) => ({ ...res, [key]: deepClone(val) }), {})
+}
+
+export function asArray<T>(v: T | T[]): T[] {
+  return Array.isArray(v) ? v : [v]
+}
+
+export function splitObject<T, P extends keyof T>(obj: T, props: (P | (keyof any)[])[]): [Pick<T, P>, Omit<T, P>] {
   const base: Partial<T> = {}
-  const extra = { ...obj }
-  for (const prop of props) {
-    base[prop] = obj[prop]
-    delete extra[prop]
+  const extra = deepClone(obj)
+  const paths = props.map(prop => (Array.isArray(prop) ? prop : [prop]))
+  for (const path of paths) {
+    const val = deepGet(obj, path)
+    deepSet(base, path, val)
+    deepDelete(extra, path)
   }
   return [base as Pick<T, P>, extra]
 }

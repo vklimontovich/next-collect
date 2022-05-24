@@ -4,6 +4,7 @@ import { sanitizeObject, flatten, splitObject } from "../tools"
 export type PostgrestDriverOpts = {
   url?: string
   apiKey?: string
+  extraColumns?: (string | string[])[]
 }
 
 function getTableFromUrl(url: string): any {
@@ -14,7 +15,8 @@ function getTableFromUrl(url: string): any {
   return parts[parts.length - 1]
 }
 
-const defaultDataTypes: Record<keyof Required<PageEventBase>, string> = {
+const defaultDataTypes: Record<keyof Required<PageEventBase>, string | null> = {
+  user: null,
   timestamp: "TIMESTAMP",
   clickIds: "TEXT",
   eventId: "TEXT",
@@ -28,7 +30,6 @@ const defaultDataTypes: Record<keyof Required<PageEventBase>, string> = {
   screenResolution: "TEXT",
   title: "TEXT",
   url: "TEXT",
-  user: "TEXT",
   userAgent: "TEXT",
   userLanguage: "TEXT",
   utms: "TEXT",
@@ -56,13 +57,17 @@ function guessDataType(field: string, value: string | boolean | number | null) {
 
 function ddl(tableName: any, _object: Record<string, any>) {
   const object: Record<string, any> = { ..._object, user: _object.user || {} }
+  console.log("Guessing ddl for", object)
   object.user.id = object.user.id || ""
   object.user.email = object.user.email || ""
   object.user.email = object.user.anonymousId || ""
 
-  const statements = Object.entries(object).map(
-    ([field, value]) => `ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${field}" ${guessDataType(field, value)}`
-  )
+  const statements = Object.entries(object)
+    .map(([field, value]) => [field, guessDataType(field, value)])
+    .filter(([, type]) => !!type)
+    .map(([field, type]) => `ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${field}" ${type}`)
+
+  //`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${field}" ${guessDataType(field, value)}`
 
   statements.push(`ALTER TABLE "${tableName}" ADD CONSTRAINT ${tableName.toLowerCase()}_pkey PRIMARY KEY ("eventId")`)
   return statements.join(";\n") + ";"
@@ -81,13 +86,22 @@ function parseQueryString(queryString: string) {
 async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDriverOpts): Promise<any> {
   const url = opts.url || process.env.POSTGREST_URL
   const apiKey = opts?.apiKey || process.env.POSTGREST_API_KEY
-  const [base, extra] = splitObject(event, ...defaultPageEventProps.filter(p => p !== "utms" && p !== "clickIds"))
+  const keepColumns = [
+    ...defaultPageEventProps,
+    ["user", "email"],
+    ["user", "id"],
+    ["user", "anonymousId"],
+    ...(opts?.extraColumns || []),
+  ].filter(p => p !== "utms" && p !== "clickIds")
+  const [base, extra] = splitObject(event as any, keepColumns)
+  console.log("Split " + JSON.stringify(keepColumns), base, extra)
   const objectToInsert = {
     ...flatten(base),
     extra,
     timestamp: base.timestamp || new Date(),
     queryParams: event.queryString && event.queryString.length > 0 ? parseQueryString(event.queryString) : {},
   }
+  console.log("Inserting", objectToInsert)
   if (!url) {
     throw new Error(`Please define opts.url or env.POSTGREST_URL`)
   }
