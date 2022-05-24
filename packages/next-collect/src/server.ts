@@ -122,8 +122,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
         const pageEvent: PageEvent<any> = deepMerge(
           originalPageEvent,
           {
-            pageName: req.page.name,
-            pageProps: JSON.stringify(req.page.params),
+            page: { name: req.page.name },
           },
           extraProps,
           clientSideProps?.event || {}

@@ -91,6 +91,7 @@ export function getHostWithPort(url: PublicUrl) {
 }
 
 const _defaultPageEventProps: Record<keyof Required<PageEventBase>, true> = {
+  timestamp: true,
   clickIds: true,
   eventId: true,
   eventType: true,
@@ -115,6 +116,7 @@ export const defaultPageEventProps: Array<keyof PageEventBase> = Object.keys(_de
 >
 
 export type PageEventBase<U extends {} = {}> = {
+  timestamp: Date
   eventId: string
   eventType: string
   ipAddress: string

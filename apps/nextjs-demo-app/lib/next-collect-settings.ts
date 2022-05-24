@@ -5,6 +5,8 @@ import { NextRequest } from "next/server"
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
     process.env.JITSU_KEY && "jitsu",
+    process.env.POSTGREST_URL && "postgrest",
+    process.env.SEGMENT_KEY && "segment",
     {
       type: "echo",
       opts: {

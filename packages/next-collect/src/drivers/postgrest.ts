@@ -1,5 +1,5 @@
-import { EventSinkContext, EventSinkDriver, PageEvent, PageEventBase } from "../index"
-import { sanitizeObject, flatten } from "../tools"
+import { defaultPageEventProps, EventSinkContext, EventSinkDriver, PageEvent, PageEventBase } from "../index"
+import { sanitizeObject, flatten, splitObject } from "../tools"
 
 export type PostgrestDriverOpts = {
   url?: string
@@ -15,6 +15,7 @@ function getTableFromUrl(url: string): any {
 }
 
 const defaultDataTypes: Record<keyof Required<PageEventBase>, string> = {
+  timestamp: "TIMESTAMP",
   clickIds: "TEXT",
   eventId: "TEXT",
   eventType: "TEXT",
@@ -39,6 +40,9 @@ function guessDataType(field: string, value: string | boolean | number | null) {
   if (defaultType) {
     return defaultType
   }
+  if (value && typeof value === "object") {
+    return "JSONB"
+  }
   if (typeof value === "string") {
     return "TEXT"
   } else if (typeof value === "boolean") {
@@ -50,7 +54,12 @@ function guessDataType(field: string, value: string | boolean | number | null) {
   }
 }
 
-function ddl(tableName: any, object: Record<string, string | boolean | number | null>) {
+function ddl(tableName: any, _object: Record<string, any>) {
+  const object: Record<string, any> = { ..._object, user: _object.user || {} }
+  object.user.id = object.user.id || ""
+  object.user.email = object.user.email || ""
+  object.user.email = object.user.anonymousId || ""
+
   const statements = Object.entries(object).map(
     ([field, value]) => `ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${field}" ${guessDataType(field, value)}`
   )
@@ -59,10 +68,26 @@ function ddl(tableName: any, object: Record<string, string | boolean | number | 
   return statements.join(";\n") + ";"
 }
 
+function parseQueryString(queryString: string) {
+  return queryString
+    .substring(queryString.indexOf("?") + 1)
+    .split("&")
+    .reduce((res, pair) => {
+      const [key, value] = pair.split("=")
+      return { ...res, [key]: value && decodeURIComponent(value) }
+    }, {})
+}
+
 async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDriverOpts): Promise<any> {
-  const flatVersion = flatten(event)
   const url = opts.url || process.env.POSTGREST_URL
   const apiKey = opts?.apiKey || process.env.POSTGREST_API_KEY
+  const [base, extra] = splitObject(event, ...defaultPageEventProps.filter(p => p !== "utms" && p !== "clickIds"))
+  const objectToInsert = {
+    ...flatten(base),
+    extra,
+    timestamp: base.timestamp || new Date(),
+    queryParams: event.queryString && event.queryString.length > 0 ? parseQueryString(event.queryString) : {},
+  }
   if (!url) {
     throw new Error(`Please define opts.url or env.POSTGREST_URL`)
   }
@@ -72,7 +97,7 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
 
   const headers = {
     apikey: apiKey,
-    Authorization: `Bearer ${apiKey}`,
+    //    Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
     Accept: "application/json",
     Prefer: "resolution=merge-duplicates",
@@ -80,17 +105,17 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
   const result = await fetch(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(sanitizeObject(flatVersion)),
+    body: JSON.stringify(objectToInsert),
   })
   if (!result.ok) {
     throw new Error(
       `Failed to upsert data to ${url}. Code ${result.status} Error: ${await result.text()}. Payload ${JSON.stringify(
-        flatVersion
+        objectToInsert
       )}. Headers: ${JSON.stringify(
         headers
       )}.\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
         getTableFromUrl(url),
-        flatVersion
+        objectToInsert
       )}`
     )
   }

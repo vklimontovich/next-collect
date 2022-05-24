@@ -71,6 +71,7 @@ export const nextApiShim: NextRequestShim<NextApiRequest, NextApiResponse> = {
     const clickIds = getClickIdsFromQueryString(url.queryString)
     const utms = getUtmsFromQueryString(url.queryString)
     return {
+      timestamp: new Date(),
       eventId: randomId(),
       eventType,
       ipAddress: (
@@ -172,6 +173,7 @@ export const pageMiddlewareShim: NextRequestShim<NextRequest, NextResponse> = {
     const clickIds = getClickIdsFromQueryString(url.queryString)
     const utms = getUtmsFromQueryString(url.queryString)
     return {
+      timestamp: new Date(),
       eventId: randomId(),
       eventType,
       ipAddress: (req.headers.get("x-real-ip") || req.headers.get("x-forwarded-for") || req.ip || "127.0.0.1")

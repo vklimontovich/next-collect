@@ -110,13 +110,13 @@ export function isObject(object: any): boolean {
 }
 
 export function splitObject<T, P extends keyof T>(obj: T, ...props: P[]): [Pick<T, P>, Omit<T, P>] {
-  const base = { ...obj }
+  const base: Partial<T> = {}
   const extra = { ...obj }
   for (const prop of props) {
     base[prop] = obj[prop]
     delete extra[prop]
   }
-  return [base, extra]
+  return [base as Pick<T, P>, extra]
 }
 
 export function deepMerge(
