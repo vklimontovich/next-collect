@@ -4,6 +4,8 @@ import { segmentDriver } from "./drivers/segment"
 import { postgrestDriver } from "./drivers/postgrest"
 import { echoDriver } from "./drivers/echo"
 
+export const nextCollectProtocolVersion = "1"
+
 export type EventSinkDriverType = "jitsu" | "segment" | "custom" | "postgrest" | string
 
 export const allDrivers: Record<EventSinkDriverType, EventSinkDriver> = {
