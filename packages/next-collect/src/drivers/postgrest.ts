@@ -18,7 +18,7 @@ function getTableFromUrl(url: string): any {
 const defaultDataTypes: Record<keyof Required<PageEventBase>, string | null> = {
   user: null,
   timestamp: "TIMESTAMP",
-  clickIds: "TEXT",
+  clickIds: null,
   eventId: "TEXT",
   eventType: "TEXT",
   host: "TEXT",
@@ -32,7 +32,7 @@ const defaultDataTypes: Record<keyof Required<PageEventBase>, string | null> = {
   url: "TEXT",
   userAgent: "TEXT",
   userLanguage: "TEXT",
-  utms: "TEXT",
+  utms: null,
   viewportSize: "TEXT",
 }
 
@@ -42,7 +42,7 @@ function guessDataType(field: string, value: string | boolean | number | null) {
     return defaultType
   }
   if (value && typeof value === "object") {
-    return "JSONB"
+    return "JSONB DEFAULT '{}'::JSONB"
   }
   if (typeof value === "string") {
     return "TEXT"
@@ -88,15 +88,16 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
   const apiKey = opts?.apiKey || process.env.POSTGREST_API_KEY
   const keepColumns = [
     ...defaultPageEventProps,
+    ["page"],
     ["user", "email"],
     ["user", "id"],
     ["user", "anonymousId"],
     ...(opts?.extraColumns || []),
-  ].filter(p => p !== "utms" && p !== "clickIds")
+  ]
   const [base, extra] = splitObject(event as any, keepColumns)
   console.log("Split " + JSON.stringify(keepColumns), base, extra)
   const objectToInsert = {
-    ...flatten(base),
+    ...flatten(base, { stopPaths: ["utms", "clickIds", "page"] }),
     extra,
     timestamp: base.timestamp || new Date(),
     queryParams: event.queryString && event.queryString.length > 0 ? parseQueryString(event.queryString) : {},

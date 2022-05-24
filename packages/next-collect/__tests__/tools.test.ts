@@ -125,7 +125,12 @@ test("deepMerge", () => {
 })
 
 test("flattenJson", () => {
-  const flat = flatten({ test: 1, test2: 2, user: { name: "john", id: 2, array: [1, 2] } })
+  const flat = flatten(
+    { test: 1, test2: 2, user: { name: "john", id: 2, array: [1, 2] }, stop: { a: 1, b: 2 } },
+    {
+      stopPaths: ["stop"],
+    }
+  )
   console.log(JSON.stringify(flat, null, 2))
   expect(flat).toEqual({
     test: 1,
@@ -133,5 +138,6 @@ test("flattenJson", () => {
     user_name: "john",
     user_id: 2,
     user_array: "[1,2]",
+    stop: { a: 1, b: 2 },
   })
 })

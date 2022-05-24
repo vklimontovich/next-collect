@@ -205,15 +205,27 @@ export function mapKeys<K extends keyof any, N extends keyof any, V>(obj: Record
 
 export function flatten(
   data: Record<keyof any, any>,
-  opts?: { delimiter?: string }
+  opts?: { delimiter?: string; stopPaths?: (string | string[])[] }
 ): Record<string, string | boolean | number | null> {
   return Object.entries(data).reduce((res, [key, value]) => {
+    if ((opts?.stopPaths || []).find(path => path === key || (path.length === 1 && path[0] === key))) {
+      return { ...res, [key]: value }
+    }
+
     if (value === undefined || value === null) {
       return { ...res, [key]: null }
     } else if (Array.isArray(value)) {
       return { ...res, [key]: JSON.stringify(value) }
     } else if (typeof value === "object") {
-      const flatChild = mapKeys(flatten(value), k => `${key}${opts?.delimiter || "_"}${k}`)
+      const flatChild = mapKeys(
+        flatten(value, {
+          ...opts,
+          stopPaths:
+            opts?.stopPaths &&
+            opts?.stopPaths.filter(path => Array.isArray(path) && path.length > 1).map(path => path.slice(1)),
+        }),
+        k => `${key}${opts?.delimiter || "_"}${k}`
+      )
       return { ...res, ...flatChild }
     } else {
       return { ...res, [key]: value }
