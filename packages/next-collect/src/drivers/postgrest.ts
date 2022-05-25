@@ -16,6 +16,7 @@ function getTableFromUrl(url: string): any {
 }
 
 const defaultDataTypes: Record<keyof Required<PageEventBase>, string | null> = {
+  httpMethod: "TEXT",
   user: null,
   timestamp: "TIMESTAMP",
   clickIds: null,

@@ -28,7 +28,7 @@ export const EventCollectionProvider: React.FC<{ children: ReactNode; options?: 
 }
 
 export type EventCollectionClient = {
-  event: (eventType: string, eventProps: Partial<PageEvent> & { [key: string]: any }) => void
+  event: (eventType: string, eventProps?: Partial<PageEvent> & { [key: string]: any }) => void
 }
 
 function getPublicUrl(): PublicUrl {
@@ -48,7 +48,7 @@ export function useCollector(): EventCollectionClient {
   const options: EventSinkContextOptions | null = useContext(EventCollectionContext)
 
   return {
-    event(eventType: string, eventProps?: Partial<PageEvent> & { [p: string]: any }): void {
+    event(eventType: string, eventProps: Partial<PageEvent> & { [p: string]: any } = {}): void {
       const url = getPublicUrl()
       const req: ClientSideCollectRequest = {
         event: {
@@ -67,7 +67,7 @@ export function useCollector(): EventCollectionClient {
           localTimezoneOffset: new Date().getTimezoneOffset(),
           url: window.location.href,
           utms: getUtmsFromQueryString(url.queryString),
-          ...(eventProps || {}),
+          ...eventProps,
         },
       }
       fetch(options?.apiPath || defaultCollectApiRoute, {

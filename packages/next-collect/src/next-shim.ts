@@ -71,6 +71,7 @@ export const nextApiShim: NextRequestShim<NextApiRequest, NextApiResponse> = {
     const clickIds = getClickIdsFromQueryString(url.queryString)
     const utms = getUtmsFromQueryString(url.queryString)
     return {
+      httpMethod: req.method || "UNKNOWN",
       timestamp: new Date(),
       eventId: randomId(),
       eventType,
@@ -173,6 +174,7 @@ export const pageMiddlewareShim: NextRequestShim<NextRequest, NextResponse> = {
     const clickIds = getClickIdsFromQueryString(url.queryString)
     const utms = getUtmsFromQueryString(url.queryString)
     return {
+      httpMethod: req.method || "UNKNOWN",
       timestamp: new Date(),
       eventId: randomId(),
       eventType,

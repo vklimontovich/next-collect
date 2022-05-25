@@ -93,6 +93,7 @@ export function getHostWithPort(url: PublicUrl) {
 }
 
 const _defaultPageEventProps: Record<keyof Required<PageEventBase>, true> = {
+  httpMethod: true,
   timestamp: true,
   clickIds: true,
   eventId: true,
@@ -128,6 +129,7 @@ export type PageEventBase<U extends {} = {}> = {
   path: string
   queryString?: string
   url: string
+  httpMethod: string
 
   utms: Record<UtmCode, string>
   clickIds: Record<ClickId, string>

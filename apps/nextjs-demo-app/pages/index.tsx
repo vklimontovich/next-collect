@@ -2,12 +2,7 @@ import { EventCollectionProvider } from "next-collect/client"
 import { useContext, useState } from "react"
 // import {ClientSideCollectRequest, defaultCollectApiRoute, getHostWithPort, getQueryString, getUtmsFromQueryString, PageEvent} from "next-collect/src";
 // import {sanitizeObject} from "next-collect/src/tools";
-import {
-  EventCollectionClient,
-  EventCollectionContext,
-  EventSinkContextOptions,
-  useCollector,
-} from "next-collect/client"
+import { useCollector } from "next-collect/client"
 import { GetServerSideProps } from "next"
 import { parseUserCookie } from "../lib/next-collect-settings"
 import Head from "next/head"
