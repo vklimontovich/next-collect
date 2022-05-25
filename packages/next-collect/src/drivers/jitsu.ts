@@ -1,4 +1,4 @@
-import { splitObject, removeSuffix, renameProps, sanitizeObject } from "../tools"
+import { splitObject, removeSuffix, renameProps, sanitizeObject, mapKeys } from "../tools"
 import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, PageEvent } from "../index"
 
 export type ServerUrl = `${"http" | "https"}://${string}`
@@ -38,7 +38,7 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
     user: renameProps(event.user, { anonymousId: "anonymous_id" }),
     ids: {},
     local_tz_offset: event.localTimezoneOffset,
-    utm: event.utms,
+    utm: mapKeys(event.utms, utm => (utm.indexOf("utm_") === 0 ? utm.substring("utm_".length) : utm)),
     click_id: event.clickIds,
     ...extra,
   }
