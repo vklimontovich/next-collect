@@ -77,10 +77,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
             })
             .then(r => {
               if (opts?.debug) {
-                console.info(
-                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`,
-                  r
-                )
+                console.info(`${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`)
               }
             })
         }
