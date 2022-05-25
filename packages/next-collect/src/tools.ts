@@ -69,25 +69,27 @@ export type PrefixMap<T> = {
   get(element: string): T | undefined
 }
 
-function lastIndexOrFail(str: string, search: string): number | undefined {
-  const lastPosition = str.lastIndexOf(search)
-  if (lastPosition >= 0) {
-    if (str.lastIndexOf(search, lastPosition - 1) >= 0) {
-      throw new Error(`Invalid pattern ${str}. So far we support only one wildcard that should be at the end of URL`)
-    }
-  }
-  return lastPosition >= 0 ? lastPosition : undefined
-}
-
 export function createPrefixMap<T>(map: [string, T][]): PrefixMap<T> {
   const prefixes: [string, T][] = []
+  const suffixes: [string, T][] = []
   const fullUrls: Map<string, T> = new Map<string, T>()
   for (const [key, val] of map) {
-    const wildcardIndex = lastIndexOrFail(key, "*")
-    if (wildcardIndex) {
-      prefixes.push([key.substring(0, wildcardIndex - 1), val])
-    } else {
+    const firstWildcard = key.indexOf("*")
+    const lastWildcard = key.lastIndexOf("*")
+    if (firstWildcard < 0 && lastWildcard < 0) {
       fullUrls.set(key, val)
+    } else if (firstWildcard >= 0 && lastWildcard >= 0 && firstWildcard !== lastWildcard) {
+      throw new Error(
+        `Invalid pattern ${key}. So far we support only one wildcard that should be at the end or beginning of url. Found at least two wildcards`
+      )
+    } else if (firstWildcard === key.length - 1) {
+      prefixes.push([key.substring(0, key.length - 1), val])
+    } else if (firstWildcard === 0) {
+      suffixes.push([key.substring(1), val])
+    } else {
+      throw new Error(
+        `Invalid pattern ${key}. So far we support only one wildcard that should be at the end or beginning of url. Found at least two wildcards`
+      )
     }
   }
   return {
@@ -96,11 +98,15 @@ export function createPrefixMap<T>(map: [string, T][]): PrefixMap<T> {
       if (fullMatch !== undefined) {
         return fullMatch
       }
-      const partialMatch = prefixes.find(([key]) => element.startsWith(key))
-      if (partialMatch) {
-        return partialMatch[1]
+      const prefixMatch = prefixes.find(([key]) => element.startsWith(key))
+      if (prefixMatch && prefixMatch[1] === null) {
+        return prefixMatch[1]
       }
-      return undefined
+      const suffixMatch = suffixes.find(([key]) => element.endsWith(key))
+      if (suffixMatch && suffixMatch[1] === null) {
+        return suffixMatch[1]
+      }
+      return (prefixMatch || suffixMatch || [undefined, undefined])[1]
     },
   }
 }

@@ -37,7 +37,7 @@
     "prettier:fix": "prettier --write --config ../common-configs/.prettierrc.json --ignore-path ../common-configs/.prettierignore .",
     "build": "tsc -p .",
     "test": "jest",
-    "clean": "rm -rf ./next",
+    "clean": "rm -rf ./dist",
     "dev": "tsc -p . --watch --sourceMap --declarationMap",
     "lint": "yarn prettier:check"
   },
