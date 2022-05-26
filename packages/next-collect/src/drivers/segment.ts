@@ -1,5 +1,7 @@
 import { splitObject, removeSuffix, renameProps, sanitizeObject, removeProps, mapKeys } from "../tools"
 import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, getQueryString, PageEvent, UtmCode } from "../index"
+import { getUserAgent } from "../version"
+import { remoteCall } from "../remote"
 
 export type SegmentDriverOpts = {
   key?: string
@@ -67,53 +69,18 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
       properties: extra,
     })
   }
-  const segmentTrackRequest = {
-    anonymousId: _event.user?.anonymousId,
-    userId: _event.user?.id,
-    context,
-    traits: removeProps(_event.user || {}, "anonymousId", "userId"),
-  }
 
-  fetch("https://api.segment.io/v1/batch", {
+  remoteCall("https://api.segment.io/v1/batch", {
     method: "POST",
     headers: {
       Authorization: `Basic ${btoa(segmentKey)}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
+      "User-Agent": getUserAgent(),
     },
-    body: JSON.stringify({
+    payload: {
       batch,
       context,
-    }),
-  })
-    .then(async res => {
-      if (!res.ok) {
-        console.warn(
-          `[WARN] failed to send data to https://api.segment.io/v1/batch. Status: ${res.status}: ${await res.text()}`
-        )
-      }
-    })
-    .catch(e => {
-      console.warn(`[WARN] failed to send data to https://api.segment.io/v1/batch`, e)
-    })
-}
-
-function segmentCall(url: string, key: string, payload: any) {
-  fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Basic ${btoa(key + ":")}`,
-      "Content-Type": "application/json",
-      Accept: "application/json",
     },
-    body: JSON.stringify(sanitizeObject(payload)),
+  }).catch(e => {
+    console.warn(`[WARN] failed to send data to https://api.segment.io/v1/batch`, e)
   })
-    .then(async res => {
-      if (!res.ok) {
-        console.warn(`[WARN] failed to send data to ${url}. Status: ${res.status}: ${await res.text()}`)
-      }
-    })
-    .catch(e => {
-      console.warn(`[WARN] failed to send data to ${url}`, e)
-    })
 }

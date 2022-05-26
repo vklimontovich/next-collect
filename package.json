@@ -1,5 +1,5 @@
 {
-  "name": "turborepo-basic-shared",
+  "name": "next-collect-monorepo",
   "workspaces": [
     "packages/*",
     "apps/*"

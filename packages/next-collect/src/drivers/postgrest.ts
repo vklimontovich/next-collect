@@ -1,5 +1,7 @@
 import { defaultPageEventProps, EventSinkContext, EventSinkDriver, PageEvent, PageEventBase } from "../index"
 import { sanitizeObject, flatten, splitObject } from "../tools"
+import { getUserAgent } from "../version"
+import { remoteCall } from "../remote"
 
 export type PostgrestDriverOpts = {
   url?: string
@@ -66,11 +68,15 @@ function ddl(tableName: any, _object: Record<string, any>) {
   const statements = Object.entries(object)
     .map(([field, value]) => [field, guessDataType(field, value)])
     .filter(([, type]) => !!type)
-    .map(([field, type]) => `ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${field}" ${type}`)
+    .map(
+      ([field, type]) => `ALTER TABLE "${tableName}"
+        ADD COLUMN IF NOT EXISTS "${field}" ${type}`
+    )
 
   //`ALTER TABLE "${tableName}" ADD COLUMN IF NOT EXISTS "${field}" ${guessDataType(field, value)}`
 
-  statements.push(`ALTER TABLE "${tableName}" ADD CONSTRAINT ${tableName.toLowerCase()}_pkey PRIMARY KEY ("eventId")`)
+  statements.push(`ALTER TABLE "${tableName}"
+      ADD CONSTRAINT ${tableName.toLowerCase()}_pkey PRIMARY KEY ("eventId")`)
   return statements.join(";\n") + ";"
 }
 
@@ -115,24 +121,21 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
     "Content-Type": "application/json",
     Accept: "application/json",
     Prefer: "resolution=merge-duplicates",
+    "User-Agent": getUserAgent(),
   }
-  const result = await fetch(url, {
+  remoteCall(url, {
     method: "POST",
     headers,
     body: JSON.stringify(objectToInsert),
-  })
-  if (!result.ok) {
-    throw new Error(
-      `Failed to upsert data to ${url}. Code ${result.status} Error: ${await result.text()}. Payload ${JSON.stringify(
-        objectToInsert
-      )}. Headers: ${JSON.stringify(
-        headers
-      )}.\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
+  }).catch(err => {
+    console.warn(
+      `[WARN] failed to send data to ${url}\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
         getTableFromUrl(url),
         objectToInsert
-      )}`
+      )}\n\n`,
+      err
     )
-  }
+  })
 }
 
 export const postgrestDriver: EventSinkDriver<PostgrestDriverOpts> = opts => {

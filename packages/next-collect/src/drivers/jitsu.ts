@@ -1,5 +1,7 @@
 import { splitObject, removeSuffix, renameProps, sanitizeObject, mapKeys } from "../tools"
 import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, PageEvent } from "../index"
+import { getUserAgent, getVersion } from "../version"
+import { remoteCall } from "../remote"
 
 export type ServerUrl = `${"http" | "https"}://${string}`
 export type JitsuDriverOpts = {
@@ -42,21 +44,14 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
     click_id: event.clickIds,
     ...extra,
   }
-  fetch(jitsuUrl, {
+  remoteCall(jitsuUrl, {
     method: "POST",
     headers: {
       "X-Auth-Token": jitsuKey,
-      "Content-Type": "application/json",
-      Accept: "application/json",
+      "User-Agent": getUserAgent(),
     },
-    body: JSON.stringify(sanitizeObject(jitsuRequest)),
+    payload: sanitizeObject(jitsuRequest),
+  }).catch(e => {
+    console.warn(`[WARN] failed to send data to ${jitsuUrl}`, e)
   })
-    .then(async res => {
-      if (!res.ok) {
-        console.warn(`[WARN] failed to send data to ${jitsuUrl}. Status: ${res.status}: ${await res.text()}`)
-      }
-    })
-    .catch(e => {
-      console.warn(`[WARN] failed to send data to ${jitsuUrl}`, e)
-    })
 }
