@@ -48,12 +48,16 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
       "Content-Type": "application/json",
     }
   }
-  const controller = new AbortController()
-  const id = setTimeout(() => controller.abort(), timeoutMs)
+
+  let id, controller: any;
+  if (typeof AbortController !== "undefined") {
+    controller = new AbortController()
+    id = setTimeout(() => controller.abort(), timeoutMs)
+  }
   try {
     const response = await fetch(url, {
       ...requestOptions,
-      signal: controller.signal,
+      signal: controller?.signal || null,
     })
     clearTimeout(id)
     if (!response.ok) {
