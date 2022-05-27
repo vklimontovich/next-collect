@@ -49,7 +49,7 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
     }
   }
 
-  let id, controller: any;
+  let id, controller: any
   if (typeof AbortController !== "undefined") {
     controller = new AbortController()
     id = setTimeout(() => controller.abort(), timeoutMs)
