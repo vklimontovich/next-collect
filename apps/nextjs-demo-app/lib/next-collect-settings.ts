@@ -1,6 +1,4 @@
 import { EventSinkOpts } from "next-collect"
-import { NextMiddlewareOpts } from "next-collect/server"
-import { NextRequest } from "next/server"
 
 export const nextCollectBasicSettings: EventSinkOpts = {
   drivers: [
