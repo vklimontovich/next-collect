@@ -1,5 +1,13 @@
 import { splitObject, removeSuffix, renameProps, sanitizeObject, removeProps, mapKeys } from "../tools"
-import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, getQueryString, PageEvent, UtmCode } from "../index"
+import {
+  defaultPageEventProps,
+  DriverEnvironment,
+  EventSinkDriver,
+  getQueryString,
+  isDebug,
+  PageEvent,
+  UtmCode,
+} from "../index"
 import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
 
@@ -18,6 +26,8 @@ function toSegmentCampaign(utms: Record<UtmCode, string>) {
     return index === 0 ? utm.substring("utm_".length) : utm
   })
 }
+
+const segmentBatchEndpoint = "https://api.segment.io/v1/batch"
 
 async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, opts: SegmentDriverOpts): Promise<any> {
   const segmentKey = opts.key || process.env.SEGMENT_KEY
@@ -70,17 +80,23 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
     })
   }
 
-  remoteCall("https://api.segment.io/v1/batch", {
+  const payload = { batch, context }
+  remoteCall(segmentBatchEndpoint, {
     method: "POST",
     headers: {
       Authorization: `Basic ${btoa(segmentKey)}`,
       "User-Agent": getUserAgent(),
     },
-    payload: {
-      batch,
-      context,
-    },
-  }).catch(e => {
-    console.warn(`[WARN] failed to send data to https://api.segment.io/v1/batch`, e)
+    payload,
   })
+    .then(response => {
+      if (isDebug()) {
+        console.log(
+          `Successfully sent event to ${segmentBatchEndpoint}: ${JSON.stringify(payload)}. Response: ${response}`
+        )
+      }
+    })
+    .catch(e => {
+      console.warn(`[WARN] failed to send data to https://api.segment.io/v1/batch`, e)
+    })
 }

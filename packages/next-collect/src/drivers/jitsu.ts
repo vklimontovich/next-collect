@@ -1,5 +1,5 @@
 import { splitObject, removeSuffix, renameProps, sanitizeObject, mapKeys } from "../tools"
-import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, PageEvent } from "../index"
+import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, isDebug, PageEvent } from "../index"
 import { getUserAgent, getVersion } from "../version"
 import { remoteCall } from "../remote"
 
@@ -51,7 +51,13 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
       "User-Agent": getUserAgent(),
     },
     payload: sanitizeObject(jitsuRequest),
-  }).catch(e => {
-    console.warn(`[WARN] failed to send data to ${jitsuUrl}`, e)
   })
+    .then(response => {
+      if (isDebug()) {
+        console.log(`Successfully sent event to ${jitsuUrl}: ${JSON.stringify(jitsuRequest)}. Response: ${response}`)
+      }
+    })
+    .catch(e => {
+      console.warn(`[WARN] failed to send data to ${jitsuUrl}`, e)
+    })
 }

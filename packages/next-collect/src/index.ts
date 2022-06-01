@@ -157,8 +157,11 @@ export type DriversList = ArrayOrSingleton<EventSinkDriverType | EventHandler | 
 export type EventSinkOpts = {
   drivers: DriversList
   eventTypes?: EventTypeFunction | EventTypesMap
-  debug?: boolean
   errorHandler?: (driverType: string, error: Error) => void
+}
+
+export function isDebug(): boolean {
+  return !!process.env.NEXT_COLLECT_DEBUG
 }
 
 export function getUtmsFromQueryString(queryString: Record<string, string>): Record<UtmCode, string> {

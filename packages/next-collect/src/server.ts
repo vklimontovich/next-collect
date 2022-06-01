@@ -12,6 +12,7 @@ import {
   getEventHandler,
   defaultCollectApiRoute,
   ClientSideCollectRequest,
+  isDebug,
 } from "./index"
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
 import { IncomingMessage } from "http"
@@ -60,11 +61,11 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
         const originalPageEvent = reqResShim.getPageEvent(eventType, url, anonymousId, req)
         const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, extraProps, clientSideProps?.event || {})
         const drivers = parseDriverShortcut(opts.drivers)
-        if (opts.debug) {
+        if (isDebug()) {
           console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
         }
         for (const driver of drivers) {
-          if (opts.debug) {
+          if (isDebug()) {
             console.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
           }
           getEventHandler(driver)(pageEvent, { fetch })
@@ -76,8 +77,11 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
               }
             })
             .then(r => {
-              if (opts?.debug) {
-                console.info(`${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`)
+              if (isDebug()) {
+                console.info(
+                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully. Result:`,
+                  r
+                )
               }
             })
         }
@@ -125,11 +129,11 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
           clientSideProps?.event || {}
         )
         const drivers = parseDriverShortcut(opts.drivers)
-        if (opts.debug) {
+        if (isDebug()) {
           console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
         }
         for (const driver of drivers) {
-          if (opts.debug) {
+          if (isDebug()) {
             console.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
           }
           getEventHandler(driver)(pageEvent, { fetch })
@@ -141,7 +145,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
               }
             })
             .then(r => {
-              if (opts?.debug) {
+              if (isDebug()) {
                 console.info(
                   `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`,
                   r

@@ -1,4 +1,4 @@
-import { defaultPageEventProps, EventSinkContext, EventSinkDriver, PageEvent, PageEventBase } from "../index"
+import { defaultPageEventProps, EventSinkContext, EventSinkDriver, isDebug, PageEvent, PageEventBase } from "../index"
 import { sanitizeObject, flatten, splitObject } from "../tools"
 import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
@@ -126,16 +126,22 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
   remoteCall(url, {
     method: "POST",
     headers,
-    body: JSON.stringify(objectToInsert),
-  }).catch(err => {
-    console.warn(
-      `[WARN] failed to send data to ${url}\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
-        getTableFromUrl(url),
-        objectToInsert
-      )}\n\n`,
-      err
-    )
+    payload: objectToInsert,
   })
+    .then(response => {
+      if (isDebug()) {
+        console.log(`Successfully sent event to ${url}: ${JSON.stringify(objectToInsert)}. Response: ${response}`)
+      }
+    })
+    .catch(err => {
+      console.warn(
+        `[WARN] failed to send data to ${url}\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
+          getTableFromUrl(url),
+          objectToInsert
+        )}\n\n`,
+        err
+      )
+    })
 }
 
 export const postgrestDriver: EventSinkDriver<PostgrestDriverOpts> = opts => {
