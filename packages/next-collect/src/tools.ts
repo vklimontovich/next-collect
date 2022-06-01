@@ -194,7 +194,7 @@ export function deepMerge(
           Object.assign(target, { [key]: {} })
         }
         deepMerge(target[key], source[key])
-      } else {
+      } else if (source[key] !== undefined) {
         Object.assign(target, { [key]: source[key] })
       }
     }

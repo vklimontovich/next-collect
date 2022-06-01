@@ -92,7 +92,9 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
     .then(response => {
       if (isDebug()) {
         console.log(
-          `Successfully sent event to ${segmentBatchEndpoint}: ${JSON.stringify(payload)}. Response: ${response}`
+          `Successfully sent event to ${segmentBatchEndpoint}: ${JSON.stringify(payload)}. Response: ${JSON.stringify(
+            response
+          )}`
         )
       }
     })

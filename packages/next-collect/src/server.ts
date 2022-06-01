@@ -59,7 +59,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
           url
         )
         const originalPageEvent = reqResShim.getPageEvent(eventType, url, anonymousId, req)
-        const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, extraProps, clientSideProps?.event || {})
+        const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, clientSideProps?.event || {}, extraProps)
         const drivers = parseDriverShortcut(opts.drivers)
         if (isDebug()) {
           console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
@@ -76,12 +76,9 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
                 console.warn(`[WARN] Can't send data to ${driver.type}`, e)
               }
             })
-            .then(r => {
+            .then(() => {
               if (isDebug()) {
-                console.info(
-                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully. Result:`,
-                  r
-                )
+                console.info(`${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`)
               }
             })
         }
@@ -125,8 +122,8 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
           {
             page: { name: req.page.name },
           },
-          extraProps,
-          clientSideProps?.event || {}
+          clientSideProps?.event || {},
+          extraProps
         )
         const drivers = parseDriverShortcut(opts.drivers)
         if (isDebug()) {

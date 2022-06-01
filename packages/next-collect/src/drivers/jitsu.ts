@@ -54,7 +54,11 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
   })
     .then(response => {
       if (isDebug()) {
-        console.log(`Successfully sent event to ${jitsuUrl}: ${JSON.stringify(jitsuRequest)}. Response: ${response}`)
+        console.log(
+          `Successfully sent event to ${jitsuUrl}: ${JSON.stringify(jitsuRequest)}. Response: ${JSON.stringify(
+            response
+          )}`
+        )
       }
     })
     .catch(e => {

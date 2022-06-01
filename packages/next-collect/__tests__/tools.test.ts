@@ -124,6 +124,10 @@ test("deepMerge", () => {
     test3: 3,
     user: { name: "jack", id: 2, email: 3 },
   })
+
+  expect(deepMerge({ test: 1 }, { test: undefined })).toEqual({
+    test: 1,
+  })
 })
 
 test("flattenJson", () => {
