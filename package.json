@@ -14,7 +14,7 @@
     "test": "turbo run test",
     "dev": "turbo run dev --parallel",
     "release:publish": "ts-node --skipProject ./scripts/release.ts",
-    "release": "pnpm clean && pnpm build && pnpm release:publish",
+    "release": "pnpm clean && pnpm build --no-cache && pnpm release:publish",
     "lint": "turbo run lint",
     "prettier:fix": "turbo run prettier:fix",
     "prepare": "husky install"
