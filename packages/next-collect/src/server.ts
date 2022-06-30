@@ -35,7 +35,7 @@ export function parsePublicUrlNodeApi(req: IncomingMessage): PublicUrl {
   throw new Error("Not implemeted")
 }
 
-export type DynamicOption<Req, Res, T> = ((req: Req, res: Res) => T) | T | undefined
+export type DynamicOption<Req, Res, T> = ((req: Req, res: Res, originalEvent: any) => T) | T | undefined
 
 export function eventCollector(opts: EventSinkOpts): EventCollector {
   const eventTypeMaps = parseEventTypesMap(opts.eventTypes)
@@ -44,22 +44,27 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
       const reqResShim: NextRequestShim<NextApiRequest, NextApiResponse> = nextApiShim
 
       try {
-        const extraProps = safeCall(() => getDynamicOption(props?.extend, {})(req, res), ".props", {})
         const clientSideProps = req.body as ClientSideCollectRequest
+        const clientSideEventProps = clientSideProps?.event || {}
+        const extraProps = safeCall(
+          () => getDynamicOption(props?.extend, {})(req, res, clientSideEventProps),
+          ".props",
+          {}
+        )
         const url = reqResShim.parsePublicUrl(req)
         const eventType = clientSideProps ? clientSideProps.event.eventType : eventTypeMaps(url.path)
         if (!eventType) {
           return res
         }
         const anonymousId = reqResShim.getAnonymousId(
-          getDynamicOption(props?.cookieName, defaultCookieName)(req, res),
-          getDynamicOption(props?.cookieDomain, undefined)(req, res),
+          getDynamicOption(props?.cookieName, defaultCookieName)(req, res, clientSideEventProps),
+          getDynamicOption(props?.cookieDomain, undefined)(req, res, clientSideEventProps),
           req,
           res,
           url
         )
         const originalPageEvent = reqResShim.getPageEvent(eventType, url, anonymousId, req)
-        const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, clientSideProps?.event || {}, extraProps)
+        const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, clientSideEventProps, extraProps)
         const drivers = parseDriverShortcut(opts.drivers)
         if (isDebug()) {
           console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
@@ -95,8 +100,13 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
       const isCsrRequest =
         props?.exposeEndpoint !== null && req.nextUrl.pathname === (props?.exposeEndpoint || defaultCollectApiRoute)
       try {
-        const extraProps = safeCall(() => getDynamicOption(props?.extend, {})(req, res), ".props", {})
         const clientSideProps = isCsrRequest ? ((await req.json()) as ClientSideCollectRequest) : null
+        const clientSideEventProps = clientSideProps?.event || {}
+        const extraProps = safeCall(
+          () => getDynamicOption(props?.extend, {})(req, res, clientSideEventProps),
+          ".props",
+          {}
+        )
         const url = pageMiddlewareShim.parsePublicUrl(req)
         if (isCsrRequest && !clientSideProps?.event?.eventType) {
           throw new Error(
@@ -110,8 +120,8 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
           return res
         }
         const anonymousId = reqResShim.getAnonymousId(
-          getDynamicOption(props?.cookieName, defaultCookieName)(req, res),
-          getDynamicOption(props?.cookieDomain, undefined)(req, res),
+          getDynamicOption(props?.cookieName, defaultCookieName)(req, res, clientSideEventProps),
+          getDynamicOption(props?.cookieDomain, undefined)(req, res, clientSideEventProps),
           req,
           res,
           url
@@ -122,7 +132,7 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
           {
             page: { name: req.page.name },
           },
-          clientSideProps?.event || {},
+          clientSideEventProps,
           extraProps
         )
         const drivers = parseDriverShortcut(opts.drivers)
@@ -164,7 +174,10 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
   }
 }
 
-function getDynamicOption<Req, Res, T>(o: DynamicOption<Req, Res, T>, defaultVal: T): (req: Req, res: Res) => T {
+function getDynamicOption<Req, Res, T>(
+  o: DynamicOption<Req, Res, T>,
+  defaultVal: T
+): (req: Req, res: Res, originalEvent: any) => T {
   if (o === undefined) {
     return () => defaultVal
   } else if (typeof o === "function") {
