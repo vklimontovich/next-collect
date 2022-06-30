@@ -1,4 +1,11 @@
+> **Warning**
+> This version (`0.1.*` / `next_middleware_legacy` branch) is compatible with Next.JS `12.1.*` only. Since Next.JS `12.2.*`, the
+> middleware [API has changed](https://nextjs.org/docs/messages/middleware-upgrade-guide), so
+> you'll need to use next collect `0.2.1` or higher.
+
+
 ![How Next Collect Works](./README/hero.png)
+
 
 # Overview
 
