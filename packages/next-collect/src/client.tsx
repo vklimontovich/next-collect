@@ -13,13 +13,13 @@ import {
 } from "./index"
 import { removeSuffix, sanitizeObject } from "./tools"
 
-export const EventCollectionContext = createContext<EventSinkContextOptions | null>(null)
+export const EventCollectionContext = createContext<CollectOptions | null>(null)
 
-export interface EventSinkContextOptions {
+export interface CollectOptions {
   apiPath?: string
 }
 
-export const EventCollectionProvider: React.FC<{ children: ReactNode; options?: EventSinkContextOptions }> = ({
+export const EventCollectionProvider: React.FC<{ children: ReactNode; options?: CollectOptions }> = ({
   children,
   options,
 }) => {
@@ -45,7 +45,7 @@ function getPublicUrl(): PublicUrl {
 }
 
 export function useCollector(): EventCollectionClient {
-  const options: EventSinkContextOptions | null = useContext(EventCollectionContext)
+  const options: CollectOptions | null = useContext(EventCollectionContext)
 
   return {
     event(eventType: string, eventProps: Partial<PageEvent> & { [p: string]: any } = {}): void {

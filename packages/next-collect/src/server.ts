@@ -5,7 +5,7 @@ import {
   PageEvent,
   PublicUrl,
   UserProperties,
-  EventSinkOpts,
+  CollectOpts,
   parseEventTypesMap,
   safeCall,
   parseDriverShortcut,
@@ -37,7 +37,11 @@ export function parsePublicUrlNodeApi(req: IncomingMessage): PublicUrl {
 
 export type DynamicOption<Req, Res, T> = ((req: Req, res: Res, originalEvent: any) => T) | T | undefined
 
-export function eventCollector(opts: EventSinkOpts): EventCollector {
+function isSystemRequest(req: NextRequest) {
+  return req.nextUrl.pathname.indexOf("/_next/") === 0
+}
+
+export function eventCollector(opts: CollectOpts): EventCollector {
   const eventTypeMaps = parseEventTypesMap(opts.eventTypes)
   return {
     async nextApiHandler(req: NextApiRequest, res: NextApiResponse, props) {
@@ -95,46 +99,30 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
     },
 
     async nextJsPageMiddleware(req: NextRequest, res: NextResponse, props = undefined): Promise<NextResponse> {
+      if (isSystemRequest(req)) {
+        if (isDebug()) {
+          console.log(`[DEBUG] Skip system request ${req.nextUrl.pathname}`)
+        }
+        return res
+      }
       const reqResShim: NextRequestShim<NextRequest, NextResponse> = pageMiddlewareShim
 
-      const isCsrRequest =
-        props?.exposeEndpoint !== null && req.nextUrl.pathname === (props?.exposeEndpoint || defaultCollectApiRoute)
       try {
-        const clientSideProps = isCsrRequest ? ((await req.json()) as ClientSideCollectRequest) : null
-        const clientSideEventProps = clientSideProps?.event || {}
-        const extraProps = safeCall(
-          () => getDynamicOption(props?.extend, {})(req, res, clientSideEventProps),
-          ".props",
-          {}
-        )
+        const extraProps = safeCall(() => getDynamicOption(props?.extend, {})(req, res, {}), ".props", {})
         const url = pageMiddlewareShim.parsePublicUrl(req)
-        if (isCsrRequest && !clientSideProps?.event?.eventType) {
-          throw new Error(
-            `Malformed ${
-              props?.exposeEndpoint || defaultCollectApiRoute
-            } request - missing event.eventType. Request: ${JSON.stringify(clientSideProps)}`
-          )
-        }
-        const eventType = clientSideProps ? clientSideProps.event.eventType : eventTypeMaps(url.path)
+        const eventType = eventTypeMaps(url.path)
         if (!eventType) {
           return res
         }
         const anonymousId = reqResShim.getAnonymousId(
-          getDynamicOption(props?.cookieName, defaultCookieName)(req, res, clientSideEventProps),
-          getDynamicOption(props?.cookieDomain, undefined)(req, res, clientSideEventProps),
+          getDynamicOption(props?.cookieName, defaultCookieName)(req, res, {}),
+          getDynamicOption(props?.cookieDomain, undefined)(req, res, {}),
           req,
           res,
           url
         )
         const originalPageEvent = reqResShim.getPageEvent(eventType, url, anonymousId, req)
-        const pageEvent: PageEvent<any> = deepMerge(
-          originalPageEvent,
-          {
-            page: { name: req.page.name },
-          },
-          clientSideEventProps,
-          extraProps
-        )
+        const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, extraProps)
         const drivers = parseDriverShortcut(opts.drivers)
         if (isDebug()) {
           console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
@@ -160,15 +148,10 @@ export function eventCollector(opts: EventSinkOpts): EventCollector {
               }
             })
         }
-        return clientSideProps ? NextResponse.json({ ok: true }) : res
+        return res
       } catch (e: any) {
-        if (!isCsrRequest) {
-          console.error()
-          return res
-        } else {
-          console.error()
-          return NextResponse.json({ ok: false, error: `${e?.message || "Unknown error"}` })
-        }
+        console.error()
+        return res
       }
     },
   }
@@ -206,7 +189,9 @@ export type NextApiHandlerOpts<
   extend?: DynamicOption<NextApiRequest, NextApiResponse, U>
 }
 
-export function collectEvents(opts: EventSinkOpts & NextMiddlewareOpts): NextMiddleware {
+export type NextCollectOpts = CollectOpts & NextMiddlewareOpts & NextApiHandlerOpts
+
+export function collectEvents(opts: CollectOpts & NextMiddlewareOpts): NextMiddleware {
   return async (request, event) => {
     const response: Response = opts.middleware
       ? (await opts.middleware(request, event)) || NextResponse.next()
@@ -216,12 +201,13 @@ export function collectEvents(opts: EventSinkOpts & NextMiddlewareOpts): NextMid
   }
 }
 
-export function collectApiHandler(opts: EventSinkOpts & NextApiHandlerOpts): NextApiHandler {
+export function collectApiHandler(opts: CollectOpts & NextApiHandlerOpts): NextApiHandler {
   return async (request, response) => {
     return eventCollector(opts).nextApiHandler(request, response, opts)
   }
 }
 
-export function nextEventsCollectApi(opts: EventSinkOpts & NextApiHandlerOpts): NextApiHandler {
-  return (req, res) => eventCollector(opts).nextApiHandler(req, res, opts)
-}
+/**
+ * @deprecated use collectEvents instead
+ */
+export const nextEventsCollectApi = collectApiHandler

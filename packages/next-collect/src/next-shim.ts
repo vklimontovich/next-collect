@@ -151,7 +151,7 @@ export const pageMiddlewareShim: NextRequestShim<NextRequest, NextResponse> = {
     } else if (cookieName === undefined) {
       cookieName = defaultCookieName
     }
-    const id = req.cookies[cookieName]
+    const id = req.cookies.get(cookieName)
     if (id) {
       return id
     } else {

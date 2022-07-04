@@ -154,11 +154,17 @@ export type EventTypesMap =
 export type ArrayOrSingleton<T> = T | T[]
 
 export type DriversList = ArrayOrSingleton<EventSinkDriverType | EventHandler | EventSinkDriverOpts | undefined | null>
-export type EventSinkOpts = {
+
+export type CollectOpts = {
   drivers: DriversList
   eventTypes?: EventTypeFunction | EventTypesMap
   errorHandler?: (driverType: string, error: Error) => void
 }
+
+/**
+ * @deprecated, keep for backward compatibility
+ */
+export type EventSinkOpts = CollectOpts
 
 export function isDebug(): boolean {
   return !!process.env.NEXT_COLLECT_DEBUG
