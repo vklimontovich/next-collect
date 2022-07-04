@@ -60,13 +60,14 @@
     "express": "^4.18.1",
     "jest": "~28.1.0",
     "jest-environment-jsdom": "^28.1.0",
-    "next": "^12.1.6",
+    "next": "^12.2.0",
     "node-fetch": "^3.2.4",
     "node-fetch-commonjs": "^3.1.1",
     "ts-jest": "^28.0.2",
     "typescript": "^4.6.4"
   },
   "peerDependencies": {
+    "next": "^12.2.0",
     "react": "^17.0.2 || ^18",
     "react-dom": "^17.0.2 || ^18"
   }

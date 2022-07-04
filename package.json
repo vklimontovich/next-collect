@@ -7,14 +7,16 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "clean:cache": "turbo run clean --parallel && rm -rf `find . -name node_modules -type d` && rm -rf `find . -name .cache -type d` && rm -rf `find . -name .turbo -type d`",
+    "factory-reset": "turbo run clean --parallel && rm -rf `find . -name node_modules -type d` && rm -rf `find . -name .cache -type d` && rm -rf `find . -name .turbo -type d`",
     "clean": "turbo run clean --parallel",
     "build": "turbo run build",
     "turbo": "turbo",
     "test": "turbo run test",
-    "dev": "turbo run dev --parallel",
-    "release:publish": "ts-node --skipProject ./scripts/release.ts",
-    "release": "pnpm clean && pnpm build --no-cache && pnpm release:publish",
+    "dev": "turbo run dev --continue",
+
+    "release": "monorel --npm-tag latest --filter './packages/a'  --filter './packages/b'",
+    "canary:publish": "monorel --filter './packages/next-collect' --version '0.2.0-alpha.{rev}.{time}' --npm-tag canary --publish",
+
     "lint": "turbo run lint",
     "prettier:fix": "turbo run prettier:fix",
     "prepare": "husky install"
@@ -27,6 +29,7 @@
     "husky": "^8.0.0",
     "json5": "^2.2.1",
     "minimist": "^1.2.6",
+    "monorel": "^0.3.0",
     "prettier": "latest",
     "ts-node": "^10.8.0",
     "turbo": "^1.2.11",
