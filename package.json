@@ -14,7 +14,7 @@
     "test": "turbo run test",
     "dev": "turbo run dev --continue",
 
-    "release": "monorel --npm-tag latest --filter './packages/a'  --filter './packages/b'",
+    "release": "pnpm build && monorel --npm-tag latest --filter './packages/next-collect'",
     "canary:publish": "monorel --filter './packages/next-collect' --version '0.2.0-alpha.{rev}.{time}' --npm-tag canary --publish",
 
     "lint": "turbo run lint",
