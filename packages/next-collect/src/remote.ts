@@ -10,7 +10,7 @@ export type RemoteOptions = RequestInit & {
 }
 
 const maxErrorMessageLen = 5000
-const defaultRequestTimout = maxErrorMessageLen
+const defaultRequestTimout = 5000
 
 async function getErrorText(response: Response): Promise<string> {
   try {

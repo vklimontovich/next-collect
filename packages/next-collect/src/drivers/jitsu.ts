@@ -1,7 +1,9 @@
 import { splitObject, removeSuffix, renameProps, sanitizeObject, mapKeys } from "../tools"
 import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, isDebug, PageEvent } from "../index"
-import { getUserAgent, getVersion } from "../version"
+import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
+
+const defaultRequestTimout = 10000
 
 export type ServerUrl = `${"http" | "https"}://${string}`
 export type JitsuDriverOpts = {
@@ -51,6 +53,7 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
       "User-Agent": getUserAgent(),
     },
     payload: sanitizeObject(jitsuRequest),
+    timeoutMs: defaultRequestTimout,
   })
     .then(response => {
       if (isDebug()) {
