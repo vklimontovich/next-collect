@@ -3,8 +3,11 @@ import { createPrefixMap, PrefixMap } from "./tools"
 import { segmentDriver } from "./drivers/segment"
 import { postgrestDriver } from "./drivers/postgrest"
 import { echoDriver } from "./drivers/echo"
+import { consoleLog, getLog, NextCollectLog } from "./log"
 
 export const nextCollectProtocolVersion = "1"
+
+export const getNextCollectLog = getLog
 
 export type EventSinkDriverType = "jitsu" | "segment" | "custom" | "postgrest" | string
 
@@ -25,13 +28,14 @@ export type EventSinkDriverOpts<O = any> = {
 
 export type EventSinkContext = {
   fetch: typeof fetch
+  log: NextCollectLog
 }
 
 export type EventHandler<O = any> = {
   (event: PageEvent, ctx: EventSinkContext): Promise<any>
 }
 
-export type DriverEnvironment = { fetch: typeof fetch }
+export type DriverEnvironment = { fetch: typeof fetch; log: NextCollectLog }
 
 export type EventSinkDriver<O = any> = (opts: O, env?: DriverEnvironment) => EventHandler
 
@@ -233,9 +237,9 @@ export function parseEventTypesMap(map: EventTypesMap | EventTypeFunction | unde
 export function safeCall<T>(callable: () => T, message: string, defaultVal: T) {
   try {
     return callable()
-  } catch (e) {
-    console.error()
-    return {}
+  } catch (e: any) {
+    consoleLog.error(`Failed to get ${message}: ${e?.message || "Unknown error"}`, e)
+    return defaultVal
   }
 }
 

@@ -2,6 +2,7 @@ import { defaultPageEventProps, EventSinkContext, EventSinkDriver, isDebug, Page
 import { sanitizeObject, flatten, splitObject } from "../tools"
 import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
+import type { NextCollectLog } from "../log"
 
 export type PostgrestDriverOpts = {
   url?: string
@@ -58,9 +59,9 @@ function guessDataType(field: string, value: string | boolean | number | null) {
   }
 }
 
-function ddl(tableName: any, _object: Record<string, any>) {
+function ddl(tableName: any, _object: Record<string, any>, log: NextCollectLog) {
   const object: Record<string, any> = { ..._object, user: _object.user || {} }
-  console.log("Guessing ddl for", object)
+  log.log("Guessing ddl for", object)
   object.user.id = object.user.id || ""
   object.user.email = object.user.email || ""
   object.user.email = object.user.anonymousId || ""
@@ -90,7 +91,7 @@ function parseQueryString(queryString: string) {
     }, {})
 }
 
-async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDriverOpts): Promise<any> {
+async function upsert(event: PageEvent, { fetch, log }: EventSinkContext, opts: PostgrestDriverOpts): Promise<any> {
   const url = opts.url || process.env.POSTGREST_URL
   const apiKey = opts?.apiKey || process.env.POSTGREST_API_KEY
   const keepColumns = [
@@ -130,14 +131,15 @@ async function upsert(event: PageEvent, ctx: EventSinkContext, opts: PostgrestDr
   })
     .then(response => {
       if (isDebug()) {
-        console.log(`Successfully sent event to ${url}: ${JSON.stringify(objectToInsert)}. Response: ${response}`)
+        log.log(`Successfully sent event to ${url}: ${JSON.stringify(objectToInsert)}. Response: ${response}`)
       }
     })
     .catch(err => {
-      console.warn(
-        `[WARN] failed to send data to ${url}\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
+      log.warn(
+        `Failed to send data to ${url}\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
           getTableFromUrl(url),
-          objectToInsert
+          objectToInsert,
+          log
         )}\n\n`,
         err
       )

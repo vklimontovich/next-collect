@@ -67,11 +67,11 @@ function toTable(event: Record<keyof any, any>, style: ConsoleStyle) {
 export const echoDriver: EventSinkDriver<EchoDriverOpts> = opts => {
   const _style = opts.disableColor ? emptyStyle : style
   const format = opts?.format || "table"
-  return event => {
-    console.log(
-      `${_style.bold(_style.green("[NextCollect:echo driver]"))} processing event ${_style.bold(
-        event.eventType || "uknown_event"
-      )}\n` + (format === "json" ? JSON.stringify(event, null, 2) : toTable(event, _style))
+  return (event, { log }) => {
+    log.log(
+      `${_style.bold(_style.green("NextCollect/EchoDriver"))} processing event ${_style.bold(
+        event.eventType || "unknown_event"
+      )} ` + (format === "json" ? JSON.stringify(event) : "\n" + toTable(event, _style))
     )
     return Promise.resolve()
   }

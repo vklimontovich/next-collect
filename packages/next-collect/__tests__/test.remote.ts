@@ -1,3 +1,5 @@
+import { consoleLog } from "../src/log"
+
 const express = require("express")
 import { remoteCall } from "../src/remote"
 const fetch = require("node-fetch-commonjs")
@@ -22,7 +24,7 @@ function startServer(): Promise<CurrentServer> {
       if (typeof serverAddress === "string" || serverAddress === null) {
         reject(new Error(`Failed to get server address from: ${serverAddress}`))
       } else {
-        console.log(`Server listening on port: ${serverAddress.port}`)
+        consoleLog.log(`Server listening on port: ${serverAddress.port}`)
         resolve({ server, port: serverAddress.port })
       }
     })

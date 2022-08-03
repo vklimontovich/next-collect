@@ -2,6 +2,7 @@ import { splitObject, removeSuffix, renameProps, sanitizeObject, mapKeys } from 
 import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, isDebug, PageEvent } from "../index"
 import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
+import { consoleLog } from "../log"
 
 const defaultRequestTimout = 10000
 
@@ -15,7 +16,11 @@ export const jitsuDriver: EventSinkDriver<JitsuDriverOpts> = opts => {
   return (event, ctx) => sinkServerEvent(event, ctx, opts)
 }
 
-async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, opts: JitsuDriverOpts): Promise<any> {
+async function sinkServerEvent(
+  _event: PageEvent,
+  { fetch, log }: DriverEnvironment,
+  opts: JitsuDriverOpts
+): Promise<any> {
   const jitsuKey = opts.key || process.env.JITSU_KEY
   if (!jitsuKey) {
     throw new Error(`Jitsu driver is mis-configured. Either opts.key option, or JITSU_KEY env car should be defined`)
@@ -57,7 +62,7 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
   })
     .then(response => {
       if (isDebug()) {
-        console.log(
+        log.debug(
           `Successfully sent event to ${jitsuUrl}: ${JSON.stringify(jitsuRequest)}. Response: ${JSON.stringify(
             response
           )}`
@@ -65,6 +70,6 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
       }
     })
     .catch(e => {
-      console.warn(`[WARN] failed to send data to ${jitsuUrl}`, e)
+      log.warn(`Failed to send data to ${jitsuUrl}: ${e?.message || "Unknown error"}`, e)
     })
 }

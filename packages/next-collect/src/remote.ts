@@ -1,3 +1,5 @@
+import { consoleLog } from "./log"
+
 export type RemoteOptions = RequestInit & {
   payload?: any
   timeoutMs?: number
@@ -19,7 +21,7 @@ async function getErrorText(response: Response): Promise<string> {
       ? `${text.substring(0, maxErrorMessageLen)}... (truncated; len=${text.length})`
       : text
   } catch (e) {
-    console.error(`Failed to get error response body`, e)
+    consoleLog.error(`Failed to get error response body`, e)
     return "(failed to get response body; see logs)"
   }
 }

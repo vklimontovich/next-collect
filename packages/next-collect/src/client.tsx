@@ -12,6 +12,7 @@ import {
   getUtmsFromQueryString,
 } from "./index"
 import { removeSuffix, sanitizeObject } from "./tools"
+import { consoleLog } from "./log"
 
 export const EventCollectionContext = createContext<CollectOptions | null>(null)
 
@@ -80,16 +81,14 @@ export function useCollector(): EventCollectionClient {
       })
         .then(async (res: Response) => {
           if (!res.ok) {
-            console.warn(
-              `[WARN] failed to send data to ${options?.apiPath || defaultCollectApiRoute}. Status code: ${
-                res.status
-              } `,
+            consoleLog.warn(
+              `Failed to send data to ${options?.apiPath || defaultCollectApiRoute}. Status code: ${res.status} `,
               await res.text()
             )
           }
         })
         .catch(e => {
-          console.warn(`[WARN] failed to send data to ${options?.apiPath || defaultCollectApiRoute}`, e)
+          consoleLog.warn(`Failed to send data to ${options?.apiPath || defaultCollectApiRoute}`, e)
         })
     },
   }

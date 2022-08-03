@@ -17,6 +17,7 @@ import {
 import { NextApiHandler, NextApiRequest, NextApiResponse } from "next"
 import { IncomingMessage } from "http"
 import { defaultCookieName, nextApiShim, NextRequestShim, pageMiddlewareShim } from "./next-shim"
+import { consoleLog } from "./log"
 
 export type EventCollector = {
   nextApiHandler<U extends PageEvent = PageEvent, P extends UserProperties = UserProperties>(
@@ -52,7 +53,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         const clientSideEventProps = clientSideProps?.event || {}
         const extraProps = safeCall(
           () => getDynamicOption(props?.extend, {})(req, res, clientSideEventProps),
-          ".props",
+          "nextApiHandler.props",
           {}
         )
         const url = reqResShim.parsePublicUrl(req)
@@ -71,44 +72,53 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, clientSideEventProps, extraProps)
         const drivers = parseDriverShortcut(opts.drivers)
         if (isDebug()) {
-          console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
+          consoleLog.log(`Sending page event to ${drivers.map(d => d.type)}: ${JSON.stringify(pageEvent)}`)
         }
         for (const driver of drivers) {
+          const startTime = new Date().getTime()
           if (isDebug()) {
-            console.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
+            consoleLog.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
           }
-          getEventHandler(driver)(pageEvent, { fetch })
+          getEventHandler(driver)(pageEvent, { fetch, log: consoleLog })
             .catch(e => {
               if (opts.errorHandler) {
                 opts.errorHandler(driver.type, e)
               } else {
-                console.warn(`[WARN] Can't send data to ${driver.type}`, e)
+                consoleLog.warn(`Can't send data to ${driver.type}`, e)
               }
             })
             .then(() => {
               if (isDebug()) {
-                console.info(`${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`)
+                consoleLog.info(
+                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully ${
+                    new Date().getTime() - startTime
+                  }ms`
+                )
               }
             })
         }
         res.json({ ok: true })
       } catch (e: any) {
         res.json({ ok: false, error: `${e?.message || "Unknown error"}` })
-        console.error()
+        consoleLog.error(e?.message || "Unknown error", e)
       }
     },
 
     async nextJsPageMiddleware(req: NextRequest, res: NextResponse, props = undefined): Promise<NextResponse> {
       if (isSystemRequest(req)) {
         if (isDebug()) {
-          console.log(`[DEBUG] Skip system request ${req.nextUrl.pathname}`)
+          consoleLog.debug(`Skip system request ${req.nextUrl.pathname}`)
         }
         return res
       }
       const reqResShim: NextRequestShim<NextRequest, NextResponse> = pageMiddlewareShim
 
       try {
-        const extraProps = safeCall(() => getDynamicOption(props?.extend, {})(req, res, {}), ".props", {})
+        const extraProps = safeCall(
+          () => getDynamicOption(props?.extend, {})(req, res, {}),
+          "nextJsPageMiddleware.props",
+          {}
+        )
         const url = pageMiddlewareShim.parsePublicUrl(req)
         const eventType = eventTypeMaps(url.path)
         if (!eventType) {
@@ -125,24 +135,27 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         const pageEvent: PageEvent<any> = deepMerge(originalPageEvent, extraProps)
         const drivers = parseDriverShortcut(opts.drivers)
         if (isDebug()) {
-          console.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
+          consoleLog.log(`Sending page event to ${drivers.map(d => d.type)}`, pageEvent)
         }
         for (const driver of drivers) {
           if (isDebug()) {
-            console.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
+            consoleLog.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
           }
-          getEventHandler(driver)(pageEvent, { fetch })
+          const startTime = new Date().getTime()
+          getEventHandler(driver)(pageEvent, { fetch, log: consoleLog })
             .catch(e => {
               if (opts.errorHandler) {
                 opts.errorHandler(driver.type, e)
               } else {
-                console.warn(`[WARN] Can't send data to ${driver.type}`, e)
+                consoleLog.warn(`[WARN] Can't send data to ${driver.type}`, e)
               }
             })
             .then(r => {
               if (isDebug()) {
-                console.info(
-                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully`,
+                consoleLog.debug(
+                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully in ${
+                    new Date().getTime() - startTime
+                  }ms`,
                   r
                 )
               }
@@ -150,7 +163,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         }
         return res
       } catch (e: any) {
-        console.error()
+        consoleLog.error(e?.message || "Unknown error", e)
         return res
       }
     },

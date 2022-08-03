@@ -29,7 +29,11 @@ function toSegmentCampaign(utms: Record<UtmCode, string>) {
 
 const segmentBatchEndpoint = "https://api.segment.io/v1/batch"
 
-async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, opts: SegmentDriverOpts): Promise<any> {
+async function sinkServerEvent(
+  _event: PageEvent,
+  { fetch, log }: DriverEnvironment,
+  opts: SegmentDriverOpts
+): Promise<any> {
   const segmentKey = opts.key || process.env.SEGMENT_KEY
   if (!segmentKey) {
     throw new Error(`Segment driver is misconfigured. Either opts.key option, or SEGMENT_KEY env car should be present`)
@@ -91,7 +95,7 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
   })
     .then(response => {
       if (isDebug()) {
-        console.log(
+        log.log(
           `Successfully sent event to ${segmentBatchEndpoint}: ${JSON.stringify(payload)}. Response: ${JSON.stringify(
             response
           )}`
@@ -99,6 +103,6 @@ async function sinkServerEvent(_event: PageEvent, { fetch }: DriverEnvironment, 
       }
     })
     .catch(e => {
-      console.warn(`[WARN] failed to send data to https://api.segment.io/v1/batch`, e)
+      log.warn(`Failed to send data to ${segmentBatchEndpoint}`, e)
     })
 }

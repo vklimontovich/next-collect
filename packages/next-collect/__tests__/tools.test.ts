@@ -10,6 +10,7 @@ import {
   sanitizeObject,
   splitObject,
 } from "../src/tools"
+import { consoleLog } from "../src/log"
 
 test("removeSuffix", () => {
   expect(removeSuffix("https://host.com/", "/")).toBe("https://host.com")
@@ -137,7 +138,7 @@ test("flattenJson", () => {
       stopPaths: ["stop"],
     }
   )
-  console.log(JSON.stringify(flat, null, 2))
+  consoleLog.log(JSON.stringify(flat, null, 2))
   expect(flat).toEqual({
     test: 1,
     test2: 2,
