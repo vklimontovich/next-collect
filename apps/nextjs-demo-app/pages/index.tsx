@@ -4,6 +4,7 @@ import { useCollector } from "next-collect/client"
 import { GetServerSideProps } from "next"
 import Head from "next/head"
 import { parseUserCookie } from "../next-collect.config"
+import Link from "next/link"
 
 const ClickMe: React.FC<{}> = () => {
   const collect = useCollector()
@@ -72,6 +73,9 @@ const IndexPage: React.FC<any> = props => {
         </div>
         <div className="pt-6">
           <UserId user={props.user} />
+        </div>
+        <div>
+          <Link href="/page2">Link to other page (test prefetch)</Link>
         </div>
       </div>
     </div>

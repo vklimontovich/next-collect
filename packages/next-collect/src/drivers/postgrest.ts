@@ -125,6 +125,7 @@ async function upsert(event: PageEvent, { fetch, log }: EventSinkContext, opts: 
     "User-Agent": getUserAgent(),
   }
   remoteCall(url, {
+    debug: isDebug(),
     method: "POST",
     headers,
     payload: objectToInsert,

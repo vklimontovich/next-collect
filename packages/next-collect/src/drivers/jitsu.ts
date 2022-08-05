@@ -51,7 +51,9 @@ async function sinkServerEvent(
     click_id: event.clickIds,
     ...extra,
   }
+  const startTime = new Date()
   remoteCall(jitsuUrl, {
+    debug: isDebug(),
     method: "POST",
     headers: {
       "X-Auth-Token": jitsuKey,
@@ -63,9 +65,9 @@ async function sinkServerEvent(
     .then(response => {
       if (isDebug()) {
         log.debug(
-          `Successfully sent event to ${jitsuUrl}: ${JSON.stringify(jitsuRequest)}. Response: ${JSON.stringify(
-            response
-          )}`
+          `Successfully sent event to ${jitsuUrl}: ${JSON.stringify(jitsuRequest)}. Time: ${
+            new Date().getTime() - startTime.getTime()
+          } Response: ${JSON.stringify(response)}`
         )
       }
     })

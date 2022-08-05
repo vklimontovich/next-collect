@@ -48,9 +48,15 @@ test("remoteCall", async () => {
   const result = await remoteCall(`http://localhost:${currentServer?.port}/delay?delay=100`, { fetch: fetch as any })
   expect(result).toEqual({ ok: true })
   await expect(async () => {
-    await remoteCall(`http://localhost:${currentServer?.port}/delay?delay=1000`, {
-      fetch: fetch as any,
-      timeoutMs: 500,
-    })
+    try {
+      await remoteCall(`http://localhost:${currentServer?.port}/delay?delay=1000`, {
+        debug: true,
+        fetch: fetch as any,
+        timeoutMs: 500,
+      })
+    } catch (e) {
+      consoleLog.info("Caught an error (this is expected)", e)
+      throw e
+    }
   }).rejects.toThrowError(/timeouts/)
 })

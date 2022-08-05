@@ -1,8 +1,6 @@
-import { CollectOpts } from "next-collect"
-import { NextApiHandlerOpts, NextMiddlewareOpts } from "next-collect/server"
+import { NextCollectOpts } from "next-collect/server"
 import { NextRequest } from "next/server"
 import { NextApiRequest } from "next"
-import { NextCollectOpts } from "next-collect/server"
 
 export const nextCollectOpts: NextCollectOpts = {
   drivers: [
@@ -21,31 +19,32 @@ export const nextCollectOpts: NextCollectOpts = {
     },
   ],
   eventTypes: [
-    { "/api/collect-api": null },
+    { "/api/collect": null },
     { "/api*": "api_call" },
     { "/img*": null },
     { "/favicon*": null },
     { "/*": "page_view" },
   ],
   extend: (req: NextRequest | NextApiRequest) => {
-    if (req instanceof NextRequest) {
-      return {
-        vercel: !!req.headers.get("x-vercel-id"),
-        geo: {
-          country: req.headers.get("x-vercel-ip-country"),
-          region: req.headers.get("x-vercel-ip-country-region"),
-          city: req.headers.get("x-vercel-ip-city"),
-        },
-        user: parseUserCookie(req.cookies.get("user")),
-      }
-    } else {
-      return {
-        onVercel: !!req.headers["x-vercel-id"],
-        user: parseUserCookie(req.cookies["user"]),
-        vercelGeo: {
-          country: req.headers["x-vercel-ip-country"],
-        },
-      }
+    return {
+      nextRuntime: process.env.NEXT_RUNTIME,
+      ...(req instanceof NextRequest
+        ? {
+            vercel: !!req.headers.get("x-vercel-id"),
+            geo: {
+              country: req.headers.get("x-vercel-ip-country"),
+              region: req.headers.get("x-vercel-ip-country-region"),
+              city: req.headers.get("x-vercel-ip-city"),
+            },
+            user: parseUserCookie(req.cookies.get("user")),
+          }
+        : {
+            onVercel: !!req.headers["x-vercel-id"],
+            user: parseUserCookie(req.cookies["user"]),
+            vercelGeo: {
+              country: req.headers["x-vercel-ip-country"],
+            },
+          }),
     }
   },
 }

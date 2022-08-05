@@ -2,6 +2,7 @@ import { consoleLog } from "./log"
 
 export type RemoteOptions = RequestInit & {
   payload?: any
+  debug?: boolean
   timeoutMs?: number
   userAgent?: string
   fetch?: (input: RequestInfo, init?: RequestInit) => Promise<Response>
@@ -12,7 +13,7 @@ export type RemoteOptions = RequestInit & {
 }
 
 const maxErrorMessageLen = 5000
-const defaultRequestTimout = 5000
+const defaultRequestTimout = 50_000
 
 async function getErrorText(response: Response): Promise<string> {
   try {
@@ -30,8 +31,9 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
   const {
     payload,
     timeoutMs = defaultRequestTimout,
-    userAgent = `remote-call timeout=${timeoutMs}`,
+    userAgent = `remote-call timeout=${timeoutMs}ms`,
     fetch = globalThis.fetch,
+    debug = false,
     ...requestOptions
   } = opts
   if (!fetch) {
@@ -50,11 +52,21 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
       "Content-Type": "application/json",
     }
   }
+  const execStarted = new Date()
 
   let id, controller: any
-  if (typeof AbortController !== "undefined") {
+  if (typeof AbortController !== "undefined" && timeoutMs > 0) {
     controller = new AbortController()
-    id = setTimeout(() => controller.abort(), timeoutMs)
+    id = setTimeout(() => {
+      if (debug) {
+        consoleLog.debug(
+          `Aborting ${requestOptions.method || "GET"} ${url} after ${
+            new Date().getTime() - execStarted.getTime()
+          }ms, timeout=${timeoutMs}ms`
+        )
+      }
+      controller.abort()
+    }, timeoutMs)
   }
   try {
     const response = await fetch(url, {
@@ -70,7 +82,15 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
   } catch (e: any) {
     clearTimeout(id)
     if (e?.name === "AbortError") {
-      return Promise.reject(new Error(`${requestOptions.method || "GET"} ${url} timeouts after ${timeoutMs}ms`))
+      return Promise.reject(
+        new Error(
+          `${requestOptions.method || "GET"} ${url} timeouts after ${
+            new Date().getTime() - execStarted.getTime()
+          }ms (configured timeout ${timeoutMs}ms). Execution started at ${execStarted.toISOString()}. Cause: ${
+            e?.message || "unknown"
+          }`
+        )
+      )
     } else {
       return Promise.reject(e)
     }

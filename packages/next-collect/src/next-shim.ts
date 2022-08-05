@@ -33,9 +33,19 @@ export type NextRequestShim<Req, Res> = {
     url: PublicUrl
   ) => string | undefined
 
-  getPageEvent: (eventType: string, url: PublicUrl, anonymousId: string | undefined, req: Req) => PageEvent
+  getPageEvent: (
+    eventType: string,
+    url: PublicUrl,
+    anonymousId: string | undefined,
+    req: Req
+  ) => PageEvent<NextJsPageProps>
 
   parsePublicUrl: (req: Req) => PublicUrl
+}
+
+export type NextJsPageProps = {
+  //if request is a prefetch request (with `header: prefetch`)
+  nextPrefetch: boolean | null
 }
 
 const getSingleHeader = (header: undefined | string | string[]) =>
@@ -66,14 +76,21 @@ export const nextApiShim: NextRequestShim<NextApiRequest, NextApiResponse> = {
       return newId
     }
   },
-  getPageEvent(eventType: string, url: PublicUrl, anonymousId: string | undefined, req: NextApiRequest): PageEvent {
+  getPageEvent(
+    eventType: string,
+    url: PublicUrl,
+    anonymousId: string | undefined,
+    req: NextApiRequest
+  ): PageEvent<NextJsPageProps> {
     const acceptLanguageHeader = getSingleHeader(req.headers["accept-language"])
     const clickIds = getClickIdsFromQueryString(url.queryString)
     const utms = getUtmsFromQueryString(url.queryString)
+    const isPrefetch: boolean = req.headers["purpose"] === "prefetch"
     return {
       httpMethod: req.method || "UNKNOWN",
       timestamp: new Date(),
       eventId: randomId(),
+      nextPrefetch: isPrefetch,
       eventType,
       ipAddress: (
         getSingleHeader(req.headers["x-real-ip"]) ||
@@ -169,11 +186,18 @@ export const pageMiddlewareShim: NextRequestShim<NextRequest, NextResponse> = {
       return newId
     }
   },
-  getPageEvent(eventType: string, url: PublicUrl, anonymousId: string | undefined, req: NextRequest): PageEvent {
+  getPageEvent(
+    eventType: string,
+    url: PublicUrl,
+    anonymousId: string | undefined,
+    req: NextRequest
+  ): PageEvent<NextJsPageProps> {
     const acceptLanguageHeader = req.headers.get("accept-language")
     const clickIds = getClickIdsFromQueryString(url.queryString)
     const utms = getUtmsFromQueryString(url.queryString)
+    const isPrefetch: boolean = req.headers.get("purpose") === "prefetch"
     return {
+      nextPrefetch: isPrefetch,
       httpMethod: req.method || "UNKNOWN",
       timestamp: new Date(),
       eventId: randomId(),

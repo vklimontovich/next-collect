@@ -86,9 +86,10 @@ async function sinkServerEvent(
 
   const payload = { batch, context }
   remoteCall(segmentBatchEndpoint, {
+    debug: isDebug(),
     method: "POST",
     headers: {
-      Authorization: `Basic ${btoa(segmentKey)}`,
+      Authorization: `Basic ${Buffer.from(segmentKey, "utf8").toString("base64")}`,
       "User-Agent": getUserAgent(),
     },
     payload,
