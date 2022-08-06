@@ -52,6 +52,7 @@ async function sinkServerEvent(
     ...extra,
   }
   const startTime = new Date()
+  const payload = sanitizeObject(jitsuRequest)
   remoteCall(jitsuUrl, {
     debug: isDebug(),
     method: "POST",
@@ -59,7 +60,7 @@ async function sinkServerEvent(
       "X-Auth-Token": jitsuKey,
       "User-Agent": getUserAgent(),
     },
-    payload: sanitizeObject(jitsuRequest),
+    payload: payload,
     timeoutMs: defaultRequestTimout,
   })
     .then(response => {
@@ -72,6 +73,11 @@ async function sinkServerEvent(
       }
     })
     .catch(e => {
-      log.warn(`Failed to send data to ${jitsuUrl}: ${e?.message || "Unknown error"}`, e)
+      log.warn(
+        `Failed to send data to ${jitsuUrl}: ${e?.message || "Unknown error"}. Next runtime: ${
+          process.env.NEXT_RUNTIME
+        }. Payload: ${JSON.stringify(payload)}`,
+        e
+      )
     })
 }

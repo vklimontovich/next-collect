@@ -13,7 +13,7 @@ export type RemoteOptions = RequestInit & {
 }
 
 const maxErrorMessageLen = 5000
-const defaultRequestTimout = 50_000
+const defaultRequestTimout = 600_000
 
 async function getErrorText(response: Response): Promise<string> {
   try {
@@ -55,17 +55,20 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
   const execStarted = new Date()
 
   let id, controller: any
+  let requestCompleted = false
   if (typeof AbortController !== "undefined" && timeoutMs > 0) {
     controller = new AbortController()
     id = setTimeout(() => {
-      if (debug) {
-        consoleLog.debug(
-          `Aborting ${requestOptions.method || "GET"} ${url} after ${
-            new Date().getTime() - execStarted.getTime()
-          }ms, timeout=${timeoutMs}ms`
-        )
+      if (!requestCompleted) {
+        if (debug) {
+          consoleLog.debug(
+            `Aborting ${requestOptions.method || "GET"} ${url} after ${
+              new Date().getTime() - execStarted.getTime()
+            }ms, timeout=${timeoutMs}ms`
+          )
+        }
+        controller.abort()
       }
-      controller.abort()
     }, timeoutMs)
   }
   try {
@@ -73,6 +76,7 @@ export async function remoteCall(url: string, opts: RemoteOptions = {}): Promise
       ...requestOptions,
       signal: controller?.signal || null,
     })
+    requestCompleted = true
     clearTimeout(id)
     if (!response.ok) {
       return Promise.reject(new Error(`${response.status} ${response.statusText} ${await getErrorText(response)}`))

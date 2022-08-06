@@ -1,13 +1,5 @@
-import { splitObject, removeSuffix, renameProps, sanitizeObject, removeProps, mapKeys } from "../tools"
-import {
-  defaultPageEventProps,
-  DriverEnvironment,
-  EventSinkDriver,
-  getQueryString,
-  isDebug,
-  PageEvent,
-  UtmCode,
-} from "../index"
+import { splitObject, removeProps, mapKeys } from "../tools"
+import { defaultPageEventProps, DriverEnvironment, EventSinkDriver, isDebug, PageEvent, UtmCode } from "../index"
 import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
 
@@ -89,7 +81,7 @@ async function sinkServerEvent(
     debug: isDebug(),
     method: "POST",
     headers: {
-      Authorization: `Basic ${Buffer.from(segmentKey, "utf8").toString("base64")}`,
+      Authorization: `Basic ${segmentKey}`,
       "User-Agent": getUserAgent(),
     },
     payload,
