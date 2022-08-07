@@ -4,8 +4,6 @@ import { getUserAgent } from "../version"
 import { remoteCall } from "../remote"
 import { consoleLog } from "../log"
 
-const defaultRequestTimout = 10000
-
 export type ServerUrl = `${"http" | "https"}://${string}`
 export type JitsuDriverOpts = {
   key?: string
@@ -61,7 +59,6 @@ async function sinkServerEvent(
       "User-Agent": getUserAgent(),
     },
     payload: payload,
-    timeoutMs: defaultRequestTimout,
   })
     .then(response => {
       if (isDebug()) {

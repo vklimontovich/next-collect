@@ -74,29 +74,36 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         if (isDebug()) {
           consoleLog.log(`Sending page event to ${drivers.map(d => d.type)}: ${JSON.stringify(pageEvent)}`)
         }
+        const allDrivers: Promise<void>[] = []
         for (const driver of drivers) {
           const startTime = new Date().getTime()
           if (isDebug()) {
             consoleLog.log(`Sending data to ${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""})`)
           }
-          getEventHandler(driver)(pageEvent, { fetch, log: consoleLog })
-            .catch(e => {
-              if (opts.errorHandler) {
-                opts.errorHandler(driver.type, e)
-              } else {
-                consoleLog.warn(`Can't send data to ${driver.type}`, e)
-              }
-            })
-            .then(() => {
-              if (isDebug()) {
-                consoleLog.info(
-                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully ${
-                    new Date().getTime() - startTime
-                  }ms`
-                )
-              }
-            })
+          const promise = new Promise<void>(resolve => {
+            getEventHandler(driver)(pageEvent, { fetch, log: consoleLog })
+              .catch(e => {
+                if (opts.errorHandler) {
+                  opts.errorHandler(driver.type, e)
+                } else {
+                  consoleLog.warn(`Can't send data to ${driver.type}`, e)
+                }
+                resolve()
+              })
+              .then(() => {
+                if (isDebug()) {
+                  consoleLog.info(
+                    `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully ${
+                      new Date().getTime() - startTime
+                    }ms`
+                  )
+                }
+                resolve()
+              })
+          })
+          allDrivers.push(promise)
         }
+        await Promise.all(allDrivers)
         res.json({ ok: true })
       } catch (e: any) {
         res.json({ ok: false, error: `${e?.message || "Unknown error"}` })
@@ -215,8 +222,9 @@ export function collectEvents(opts: CollectOpts & NextMiddlewareOpts): NextMiddl
 }
 
 export function collectApiHandler(opts: CollectOpts & NextApiHandlerOpts): NextApiHandler {
+  const collector = eventCollector(opts)
   return async (request, response) => {
-    return eventCollector(opts).nextApiHandler(request, response, opts)
+    return await collector.nextApiHandler(request, response, opts)
   }
 }
 
