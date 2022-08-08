@@ -39,7 +39,7 @@
     "yarn": ">=1000",
     "pnpm": ">=3",
     "npm": ">=1000",
-    "node": ">=14"
+    "node": ">=14 <=16"
   },
   "packageManager": "pnpm",
   "repository": "jitsucom/next-collect",
