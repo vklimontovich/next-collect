@@ -32,6 +32,37 @@ export type EventCollector = {
   ): Promise<NextResponse>
 }
 
+/**
+ * A facade function that gets header from NextRequest or NextApiRequest.
+ *
+ * In case of multiple headers with the same name, values will be separated by `,`
+ */
+export function getHeader(req: NextRequest | NextApiRequest, h: string): string | undefined {
+  if (req instanceof NextRequest) {
+    return req.headers.get(h.toLowerCase()) || undefined
+  } else {
+    const val = req.headers[h.toLowerCase()]
+    if (val && Array.isArray(val)) {
+      return val.join(",")
+    } else {
+      return val
+    }
+  }
+}
+
+export function getAllHeaders(req: NextRequest | NextApiRequest): Record<string, string> {
+  return (req instanceof NextRequest ? [...req.headers.entries()] : [...Object.entries(req.headers)])
+    .sort(([name1], [name2]) => name1.localeCompare(name2))
+    .reduce((acc, [name, val]) => ({ ...acc, [name]: Array.isArray(val) ? val.join(",") : val }), {})
+}
+
+/**
+ * A facade function that gets cookie val from NextRequest or NextApiRequest
+ */
+export function getCookie(req: NextRequest | NextApiRequest, name: string): string | undefined {
+  return req instanceof NextRequest ? req.cookies.get(name) : req.cookies[name]
+}
+
 export function parsePublicUrlNodeApi(req: IncomingMessage): PublicUrl {
   throw new Error("Not implemeted")
 }

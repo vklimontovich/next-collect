@@ -1,6 +1,7 @@
 import { NextCollectOpts } from "next-collect/server"
 import { NextRequest } from "next/server"
 import { NextApiRequest } from "next"
+import { getCookie, getHeader, getAllHeaders } from "next-collect/server"
 
 export const nextCollectOpts: NextCollectOpts = {
   drivers: [
@@ -28,24 +29,20 @@ export const nextCollectOpts: NextCollectOpts = {
   ],
   extend: (req: NextRequest | NextApiRequest) => {
     return {
+      allHeaders: JSON.stringify(getAllHeaders(req)),
+      envVars: JSON.stringify(
+        Object.entries(process.env)
+          .sort(([name1], [name2]) => name1.localeCompare(name2))
+          .reduce((acc, [name, val]) => ({ ...acc, [name]: val }), {})
+      ),
       nextRuntime: process.env.NEXT_RUNTIME,
-      ...(req instanceof NextRequest
-        ? {
-            vercel: !!req.headers.get("x-vercel-id"),
-            vercelGeo: {
-              country: req.headers.get("x-vercel-ip-country"),
-              region: req.headers.get("x-vercel-ip-country-region"),
-              city: req.headers.get("x-vercel-ip-city"),
-            },
-            user: parseUserCookie(req.cookies.get("user")),
-          }
-        : {
-            onVercel: !!req.headers["x-vercel-id"],
-            user: parseUserCookie(req.cookies["user"]),
-            vercelGeo: {
-              country: req.headers["x-vercel-ip-country"],
-            },
-          }),
+      onVercel: !!getHeader(req, "x-vercel-id"),
+      vercelGeo: {
+        country: getHeader(req, "x-vercel-ip-country"),
+        region: getHeader(req, "x-vercel-ip-country-region"),
+        city: getHeader(req, "x-vercel-ip-city"),
+      },
+      user: parseUserCookie(getCookie(req, "user")),
     }
   },
 }
