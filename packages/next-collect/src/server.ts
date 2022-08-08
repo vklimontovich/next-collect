@@ -112,7 +112,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
     },
 
     async nextJsPageMiddleware(req: NextRequest, res: NextResponse, props = undefined): Promise<NextResponse> {
-      if (isSystemRequest(req)) {
+      if (!props?.processSystemRequests && isSystemRequest(req)) {
         if (isDebug()) {
           consoleLog.debug(`Skip system request ${req.nextUrl.pathname}`)
         }
@@ -194,10 +194,14 @@ export type NextMiddlewareOpts<
   P extends UserProperties = UserProperties & any
 > = {
   middleware?: NextMiddleware
-  exposeEndpoint?: string | undefined | null
   cookieName?: DynamicOption<NextRequest, NextResponse, string>
   cookieDomain?: DynamicOption<NextRequest, NextResponse, string>
   extend?: DynamicOption<NextRequest, NextResponse, U>
+  /**
+   * If true, system next requests starting from /_next/ will be logged too, otherwise they are
+   * all skipped
+   */
+  processSystemRequests?: boolean
 }
 
 export type NextApiHandlerOpts<

@@ -18,6 +18,7 @@ export const nextCollectOpts: NextCollectOpts = {
       },
     },
   ],
+  processSystemRequests: true,
   eventTypes: [
     { "/api/collect": null },
     { "/api*": "api_call" },
@@ -31,7 +32,7 @@ export const nextCollectOpts: NextCollectOpts = {
       ...(req instanceof NextRequest
         ? {
             vercel: !!req.headers.get("x-vercel-id"),
-            geo: {
+            vercelGeo: {
               country: req.headers.get("x-vercel-ip-country"),
               region: req.headers.get("x-vercel-ip-country-region"),
               city: req.headers.get("x-vercel-ip-city"),
