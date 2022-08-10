@@ -77,7 +77,7 @@ async function sinkServerEvent(
   }
 
   const payload = { batch, context }
-  remoteCall(segmentBatchEndpoint, {
+  return remoteCall(segmentBatchEndpoint, {
     debug: isDebug(),
     method: "POST",
     headers: {
@@ -86,16 +86,4 @@ async function sinkServerEvent(
     },
     payload,
   })
-    .then(response => {
-      if (isDebug()) {
-        log.log(
-          `Successfully sent event to ${segmentBatchEndpoint}: ${JSON.stringify(payload)}. Response: ${JSON.stringify(
-            response
-          )}`
-        )
-      }
-    })
-    .catch(e => {
-      log.warn(`Failed to send data to ${segmentBatchEndpoint}`, e)
-    })
 }

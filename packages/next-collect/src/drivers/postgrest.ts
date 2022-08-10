@@ -124,27 +124,12 @@ async function upsert(event: PageEvent, { fetch, log }: EventSinkContext, opts: 
     Prefer: "resolution=merge-duplicates",
     "User-Agent": getUserAgent(),
   }
-  remoteCall(url, {
+  return remoteCall(url, {
     debug: isDebug(),
     method: "POST",
     headers,
     payload: objectToInsert,
   })
-    .then(response => {
-      if (isDebug()) {
-        log.log(`Successfully sent event to ${url}: ${JSON.stringify(objectToInsert)}. Response: ${response}`)
-      }
-    })
-    .catch(err => {
-      log.warn(
-        `Failed to send data to ${url}\n\nPlease make sure that schema is matching data by running this script:\n\n${ddl(
-          getTableFromUrl(url),
-          objectToInsert,
-          log
-        )}\n\n`,
-        err
-      )
-    })
 }
 
 export const postgrestDriver: EventSinkDriver<PostgrestDriverOpts> = opts => {

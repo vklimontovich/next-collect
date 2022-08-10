@@ -105,6 +105,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         if (isDebug()) {
           consoleLog.log(`Sending page event to ${drivers.map(d => d.type)}: ${JSON.stringify(pageEvent)}`)
         }
+        const driversResults: Record<string, string> = {}
         const allDrivers: Promise<void>[] = []
         for (const driver of drivers) {
           const startTime = new Date().getTime()
@@ -114,19 +115,21 @@ export function eventCollector(opts: CollectOpts): EventCollector {
           const promise = new Promise<void>(resolve => {
             getEventHandler(driver)(pageEvent, { fetch, log: consoleLog })
               .catch(e => {
+                driversResults[driver.type] = `error/${new Date().getTime() - startTime}ms`
                 if (opts.errorHandler) {
                   opts.errorHandler(driver.type, e)
                 } else {
-                  consoleLog.warn(`Can't send data to ${driver.type}`, e)
+                  consoleLog.warn(`Can't send data to ${driver.type}: ${e?.message || "unknown error"}`, e)
                 }
                 resolve()
               })
-              .then(() => {
+              .then(r => {
+                driversResults[driver.type] = `ok/${new Date().getTime() - startTime}ms`
                 if (isDebug()) {
                   consoleLog.info(
-                    `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully ${
+                    `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""} - api) finished successfully ${
                       new Date().getTime() - startTime
-                    }ms`
+                    }ms. Result: ${JSON.stringify(r)}`
                   )
                 }
                 resolve()
@@ -135,7 +138,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
           allDrivers.push(promise)
         }
         await Promise.all(allDrivers)
-        res.json({ ok: true })
+        res.json({ ok: true, ...driversResults })
       } catch (e: any) {
         res.json({ ok: false, error: `${e?.message || "Unknown error"}` })
         consoleLog.error(e?.message || "Unknown error", e)
@@ -185,16 +188,17 @@ export function eventCollector(opts: CollectOpts): EventCollector {
               if (opts.errorHandler) {
                 opts.errorHandler(driver.type, e)
               } else {
-                consoleLog.warn(`[WARN] Can't send data to ${driver.type}`, e)
+                consoleLog.warn(`[WARN] Can't send data to ${driver.type}: ${e?.message || "uknown error"}`, e)
               }
             })
             .then(r => {
               if (isDebug()) {
                 consoleLog.debug(
-                  `${driver.type}(${driver.opts ? JSON.stringify(driver.opts) : ""}) finished successfully in ${
+                  `${driver.type}(${
+                    driver.opts ? JSON.stringify(driver.opts) : ""
+                  } - middleware) finished successfully in ${
                     new Date().getTime() - startTime
-                  }ms`,
-                  r
+                  }ms. Result: ${JSON.stringify(r)}`
                 )
               }
             })
@@ -259,7 +263,7 @@ export function collectEvents(opts: CollectOpts & NextMiddlewareOpts): NextMiddl
 export function collectApiHandler(opts: CollectOpts & NextApiHandlerOpts): NextApiHandler {
   const collector = eventCollector(opts)
   return async (request, response) => {
-    return await collector.nextApiHandler(request, response, opts)
+    await collector.nextApiHandler(request, response, opts)
   }
 }
 
