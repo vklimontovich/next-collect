@@ -14,6 +14,7 @@ run `pnpm install` after that.
 
 ## Releasing
 
-* `pnpm canary:publish`. Creates a new canary release. 
+* `pnpm canary:publish` creates a new canary release. 
+* `pnpm release --version 0.2.1 --publish` creates a new stable release. *Dry run with `pnpm release --version 0.2.1` first!*
 
 
