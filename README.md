@@ -2,7 +2,7 @@
 
 # Overview
 
-`nextjs-collect` is a framework for server-side user event collection for Next.Js. It is designed from the ground up to work in Serverless environment
+`next-collect` is a framework for server-side user event collection for Next.Js. It is designed from the ground up to work in Serverless environment
 to take advantage of the [Vercel Edge Runtime](https://nextjs.org/docs/api-reference/edge-runtime).
 
 NextCollect is destination agnostic. It could send data to multiple destinations at once. So far it supports [Jitsu](https://jitsu.com), Segment, PostgREST (compatible
@@ -24,11 +24,11 @@ works: GoogleAnalytics, Segment, Amplitude, etc.
 
 ## Best of the both worlds
 
-`nextjs-collect` can client-side collect data too. It exposes a first-parti api route `/api/collect`, so the events can be from client-side code. A good example of such event is a
-user actions which do not call any server API (e.g. button click)
+`next-collect` can client-side collect data too. It exposes a first-party api route `/api/collect`, so the events can be sent client-side. 
+A good example of such event is user actions which do not call any server API (e.g. button click)
 
-The data will be sent to `/api/collect`, and sensitive params such userId, ip address and so on will be resolved server-side. Since the api call is first-party (goes to the same host), it won't be
-blocked by AdBlockers or tracking prevention.
+The data will be sent to `/api/collect`, and sensitive params such userId, ip address and so on will be resolved server-side. Since the api call is first-party 
+(goes to the same host), it won't be blocked by AdBlockers or tracking prevention.
 
 See a full instruction on how to use client-side tracking below
 
@@ -38,7 +38,7 @@ See a full instruction on how to use client-side tracking below
 
 ## Usage
 
-See a demo [Next.JS Demo app](https://github.com/jitsucom/next-collect/tree/main/apps/nextjs-demo-app) for a full-stack example.
+See a demo [Next.JS Demo app](https://github.com/jitsucom/next-collect/tree/main/apps/nextjs-demo-app) for an example.
 
 #### Step 1. Create `next-collect.config.[js|ts]` in the root of your Next.JS
 
@@ -68,10 +68,17 @@ export const nextCollectOpts: NextCollectOpts = {
     { "/api*": "api_call" },    
     { "/img*": null },          //ignore all and favicon calls
     { "/favicon*": null },      
-    { "/*": "page_view" },
+    { "/*": "page_request" },
   ],
 }
 ```
+
+> :warning: **`page_request`** won't be counted accurately due to Next.JS prefetch. In nutshell, you'll see more
+> requests than actually happened. It's probably not an issue if your metrics are based on unique users, but can lead
+> to incorrect number of visit metrics. See [details below](#nextjs-middleware-and-prefetch)
+> 
+> [You can count](#page_load-events) `page_load` with `useCollect()` hook, but it will lead to an extra
+> async request and is susceptible to some ad-blockers.
 
 Instead of `next-collect.config.ts` you can use any other file name, it just should be consistent with imports in `middleware.ts` and
 `collect.ts` (see below)
@@ -112,8 +119,10 @@ import { nextCollectOpts } from "../../next-collect.config";
 export default collectApiHandler(nextCollectOpts);
 ```
 
+This step is required if you're going to use `useCollect()` hook (see below)
 
-## Drivers (destinations) configguration
+
+## Drivers (destinations) configuration
 
 NextCollect is destination agnostic. It could send data to multiple destinations at once. We 
 support [Jitsu](https://jitsu.com), Segment, PostgREST (Supabase) and arbitary HTTP destinations. 
@@ -145,6 +154,19 @@ const collect = useCollect()
 return <button onClick={() => collect.event("button_click", {buttonId: "Sign Up"})}>Click Me!</button>
 ```
 
+## `page_load` events
+
+The code below sends a `page_load` event each time page has been loaded (See [demo app](https://github.com/jitsucom/next-collect/blob/main/apps/nextjs-demo-app/pages/_app.tsx) for the full example):
+
+```typescript
+  const collect = useCollector()
+  const router = useRouter()
+  useEffect(() => {
+    collect.event("page_load", {})
+  }, [router.asPath])
+```
+
+
 ### Advanced: Custom API Route
 
 Instead of `/api/collect` you can use any other route. Just don't forget to move your `collectApiHandler()` to the correct api route
@@ -160,6 +182,20 @@ file (`pages/api/alt-collect.ts` in this example)
 
 Next.JS team has changed page middleware API in between versions. Here's a detailed [changelog](https://nextjs.org/docs/messages/middleware-upgrade-guide),
 and `>=0.2.0` version is only compatible with Next.Js 12.2. For older versions, you can a [legacy 0.1.* versions](https://github.com/jitsucom/next-collect/tree/next_middleware_legacy).
+
+
+## Next.JS middleware and prefetch
+
+When browser loads Next.JS page, it will also [prefetch](https://nextjs.org/docs/api-reference/next/link) most of the links coming
+out from this page. This technique is called prefetching and can't be turned off.
+
+During the prefetch request, Next.JS will call middleware code and `page_request` event
+will be recorded. If user doesn't follow the link, the request still be processed. If user follows the
+link, the page will be displayed and no subsequent middleware call will be made. In other
+words, there's no way to tell if user actually visited the page or it has been just prefetch. See discussion on [Next.JS GitHub](https://github.com/vercel/next.js/discussions/37736).
+
+If this is not desirable, you should use [client-side collection](#client-side-data-collection---usecollect-hook) with `useCollect()` hook
+
 
 
 ## Advanced usage
@@ -196,7 +232,7 @@ export const nextCollectOpts: NextCollectOpts = {
 ```
 
 Note that `extend` takes `NextRequest | NextApiRequest` as an argument. Unfortunately, `Next.JS` exposes to different
-APIs in different environments, so you would need to implement this logic for both of them
+APIs in different environments, so you would need to implement this logic for both `NextRequest` and `NextApiRequest`
 
 The easiest way to get user id and email is to save it to cookies, and get it from `req.cookies` in `getUser()` function.
 

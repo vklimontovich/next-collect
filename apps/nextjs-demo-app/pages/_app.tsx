@@ -8,7 +8,7 @@ export default function DemoApp({ Component, pageProps }: AppProps) {
   const collect = useCollector()
   const router = useRouter()
   useEffect(() => {
-    collect.event("page_render", {})
+    collect.event("page_view", {})
   }, [router.asPath])
   return <Component {...pageProps} />
 }
