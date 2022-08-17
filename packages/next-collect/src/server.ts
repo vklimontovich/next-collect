@@ -84,7 +84,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
         const clientSideEventProps = clientSideProps?.event || {}
         const extraProps = safeCall(
           () => getDynamicOption(props?.extend, {})(req, res, clientSideEventProps),
-          "nextApiHandler.props",
+          "execute extend() method of next-collect settings in nextApiHandler context (check extend() impl)",
           {}
         )
         const url = reqResShim.parsePublicUrl(req)
@@ -157,7 +157,7 @@ export function eventCollector(opts: CollectOpts): EventCollector {
       try {
         const extraProps = safeCall(
           () => getDynamicOption(props?.extend, {})(req, res, {}),
-          "nextJsPageMiddleware.props",
+          "execute extend() method of next-collect settings in nextJsPageMiddleware context (check extend() impl)",
           {}
         )
         const url = pageMiddlewareShim.parsePublicUrl(req)

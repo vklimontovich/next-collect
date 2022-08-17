@@ -238,7 +238,7 @@ export function safeCall<T>(callable: () => T, message: string, defaultVal: T) {
   try {
     return callable()
   } catch (e: any) {
-    consoleLog.error(`Failed to get ${message}: ${e?.message || "Unknown error"}`, e)
+    consoleLog.error(`Failed to ${message}: ${e?.message || "Unknown error"}`, e)
     return defaultVal
   }
 }
