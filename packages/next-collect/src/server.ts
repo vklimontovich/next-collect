@@ -268,6 +268,6 @@ export function collectApiHandler(opts: CollectOpts & NextApiHandlerOpts): NextA
 }
 
 /**
- * @deprecated use collectEvents instead
+ * @deprecated use collectApiHandler instead
  */
 export const nextEventsCollectApi = collectApiHandler
