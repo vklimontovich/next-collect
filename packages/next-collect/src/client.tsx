@@ -28,7 +28,7 @@ export const EventCollectionProvider: React.FC<{ children: ReactNode; options?: 
   return <Context.Provider value={options || null}>{children}</Context.Provider>
 }
 
-export type EventCollectionClient = {
+export type EventCollectionClient<T extends string = string> = {
   event: (eventType: string, eventProps?: Partial<PageEvent> & { [key: string]: any }) => void
 }
 
