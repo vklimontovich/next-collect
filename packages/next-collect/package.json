@@ -1,8 +1,6 @@
 {
   "name": "next-collect",
   "version": "0.0.0",
-  "main": "index.js",
-  "module": "index.js",
   "files": [
     "dist",
     "package.json",
@@ -20,9 +18,8 @@
   "private": false,
   "exports": {
     ".": "./dist/index.js",
-    "./server": "./dist/server.js",
-    "./client": "./dist/client.js",
-    "./*": "./dist/*"
+    "./server": "./dist/server/index.js",
+    "./client": "./dist/client/index.js"
   },
   "typesVersions": {
     "*": {
@@ -33,16 +30,14 @@
   },
   "license": "MIT",
   "scripts": {
-    "prettier:check": "prettier --check --config ../common-configs/.prettierrc.json --ignore-path ../common-configs/.prettierignore .",
-    "prettier:fix": "prettier --write --config ../common-configs/.prettierrc.json --ignore-path ../common-configs/.prettierignore .",
     "build": "tsc -p .",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test": "bun test",
     "clean": "rm -rf ./dist",
-    "dev": "tsc -p . --watch --sourceMap --declarationMap",
-    "lint": "yarn prettier:check"
+    "dev": "tsc -p . --watch --preserveWatchOutput --sourceMap --declarationMap"
   },
   "dependencies": {
-    "cookie": "^0.5.0"
+    "cookie": "^0.5.0",
+    "segment-protocol": "file:/Users/vklmn/dev2/segment-protocol/"
   },
   "devDependencies": {
     "@babel/core": "^7.18.2",
@@ -56,19 +51,15 @@
     "@types/react": "^18.0.9",
     "@types/react-dom": "^18.0.4",
     "babel-jest": "^28.1.0",
-    "common-configs": "*",
     "express": "^4.18.1",
     "jest": "~28.1.0",
     "jest-environment-jsdom": "^28.1.0",
-    "next": "^12.2.0",
-    "node-fetch": "^3.2.4",
-    "node-fetch-commonjs": "^3.1.1",
     "ts-jest": "^28.0.2",
-    "typescript": "^4.6.4"
+    "typescript": "^5"
   },
   "peerDependencies": {
-    "next": "^12.2.0",
-    "react": "^17.0.2 || ^18",
-    "react-dom": "^17.0.2 || ^18"
+    "next": "^13",
+    "react": "^17 || ^18",
+    "react-dom": "^17 || ^18"
   }
 }

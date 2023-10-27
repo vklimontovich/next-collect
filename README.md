@@ -2,314 +2,137 @@
 
 # Overview
 
-`next-collect` is a framework for server-side user event collection for Next.Js. It is designed from the ground up to work in Serverless environment
-to take advantage of the [Vercel Edge Runtime](https://nextjs.org/docs/api-reference/edge-runtime).
+`next-collect` is a library for server-side analytics integration for Next.Js. It's design to work with various analytics
+backends, including [Jitsu](https://jitsu.com), [Segment](https://segment.com), [Rudderstack](https://rudderstack.com), Mixpanel (soon) and Amplitude (soon).
 
-NextCollect is destination agnostic. It could send data to multiple destinations at once. So far it supports [Jitsu](https://jitsu.com), Segment, PostgREST (compatible
-with [Supabase](https://supabase.com/docs/guides/api#rest-api-2)) and free-form HTTP-Destiation
+If you're not familiar with server-side event collection, please read [this article]
+(https://jitsu.com/blog/what-is-server-side-event-tracking) first.
 
-## Server-Side vs Client-Side event collection
+## Quick Start
 
-**Client-Side** user tracking means that once user loads the page (or makes another action), piece of JavaScript code sends the data to collector server. This is how most of the analytics trackers
-works: GoogleAnalytics, Segment, Amplitude, etc.
-**Server-Side** tracking happens when server (backend) renders the page or answers API call. No JavaScript code is touched.
+`npm install --save next-collect`. Make sure that Next.Js version is at least 13.0
 
-### Why go Server-Side
-
-* **Reliability**. 100% events will be recorded. Unlike client-side trackers, server side trackers are insusceptible to AdBlockers
-  and [Safari's Tracking Prevention](https://webkit.org/blog/7675/intelligent-tracking-prevention/).
-* **Better user identification**. Server-side cookies are more reliable, especially when cookies are set under the same domain name as the main app
-* **Better user experience**. Less javascript request means faster website
-* **No middleman**. It's possible to distribute data to end destinations directly, bypassing Segment and other similar platforms
-
-## Best of the both worlds
-
-`next-collect` can client-side collect data too. It exposes a first-party api route `/api/collect`, so the events can be sent client-side. 
-A good example of such event is user actions which do not call any server API (e.g. button click)
-
-The data will be sent to `/api/collect`, and sensitive params such userId, ip address and so on will be resolved server-side. Since the api call is first-party 
-(goes to the same host), it won't be blocked by AdBlockers or tracking prevention.
-
-See a full instruction on how to use client-side tracking below
-
-## Getting Started
-
-`npm install --save next-collect`. Make sure that Next.Js >= 12.0
-
-## Usage
-
-See a demo [Next.JS Demo app](https://github.com/jitsucom/next-collect/tree/main/apps/nextjs-demo-app) for an example.
-
-#### Step 1. Create `next-collect.config.[js|ts]` in the root of your Next.JS
-
-This file will contain shared settings of `next-collect`:
+### Step 1. Add following lines to `middleware.ts`
 
 ```typescript
-export const nextCollectOpts: NextCollectOpts = {
-  drivers: [...],
-  eventTypes: [...],
+import { nextCollectMiddleware } from "next-collect/server"
+
+export default nextCollectMiddleware()
+```
+
+If you don't have `middleware.ts` yet, create it in the root of your Next.Js project or `src` folder if you're using it.
+See Next.Js [documentation](https://nextjs.org/docs/app/building-your-application/routing/middleware) for more details
+
+If you already have a middleware, just wrap it with `nextCollectMiddleware()`
+
+```typescript
+import { nextCollectMiddleware } from "next-collect/server"
+
+//your custom middleware
+const middleware = (req, res) => {}
+
+export default nextCollectMiddleware({ middleware })
+```
+
+### Step 2. Define destination
+
+Tell next collect where to send the data. Put following variables to `.env` file:
+
+```bash
+
+#For segment
+SEGMENT_KEY=...
+
+#For Jitsu
+
+#For Rudderstack
+
+```
+
+That's it! This configuration will send all page views to destination.
+
+### Step 3: provide user id
+
+If your app has authorization, you probably want to tell to destination what is the user.
+To do so, define a custom enrich function `middleware.ts`:
+
+```typescript
+import { nextCollectMiddleware } from "next-collect/server"
+
+export default nextCollectMiddleware({
+  enrich: (event, { nextRequest }, prev) => {
+    //call default enrich function that resolves IP into geo info and sets Vercel deployment id and env
+    //if avaiable.
+    prev(event)
+
+    //For Supabase
+    event.userId = nextRequest.cookies.get("user")
+
+    //For NextAuth
+    event.userId = nextRequest.cookies.get("user")
+
+    //For Firebase
+
+    return event
+  },
+})
+```
+
+#### Step 4. Sending custom events from server
+
+For the most cases you'll need to send a custom events on a certain actions. For example, once
+user signs up, you'll need to send `user_signup` event. Once user logs in, it's a good idea to
+send an `.identify()` call
+
+```typescript
+import { nextCollect } from "next-collect/server"
+
+// src/pages/api/sign-up.ts
+export async function POST(req: NextRequest, res: NextResponse) {
+  const { analytics } = nextCollect(req, res)
+  analytics.track("user_signup", { email: req.body.email })
+}
+
+// src/pages/api/login.ts
+export async function POST(req: NextRequest, res: NextResponse) {
+  const { analytics } = nextCollect(req, res)
+  analytics.identify({ email: req.body.email })
 }
 ```
 
-`NextCollectiOptions` has a few configuration options, but most of them are optional. Mandatory options are:
- * **`drivers`** — a list of destinations where `next-collect` will send data. Each driver could be either a string or an object. 
-String means that the driver should read configuration from globally defined environment variables. Objects are for advanced manual 
-configuration
- * **`eventTypes`** — a list of event types that `next-collect` will collect. It could be a function that decides if
-a call to a certain URL should be recorded, or a list of routes
+### Step 4. Sending custom events from client
 
-Map example:
-
-```typescript
-import { NextCollectOpts } from "next-collect/server"
-
-export const nextCollectOpts: NextCollectOpts = {
-  eventTypes: [
-    { "/api*": "api_call" },    
-    { "/img*": null },          //ignore all and favicon calls
-    { "/favicon*": null },      
-    { "/*": "page_request" },
-  ],
-}
-```
-
-> :warning: **`page_request`** won't be counted accurately due to Next.JS prefetch. In nutshell, you'll see more
-> requests than actually happened. It's probably not an issue if your metrics are based on unique users, but can lead
-> to incorrect number of visit metrics. See [details below](#nextjs-middleware-and-prefetch)
-> 
-> [You can count](#page_load-events) `page_load` with `useCollect()` hook, but it will lead to an extra
-> async request and is susceptible to some ad-blockers.
-
-Instead of `next-collect.config.ts` you can use any other file name, it just should be consistent with imports in `middleware.ts` and
-`collect.ts` (see below)
-
-
-#### Step 2. Create `middleware.[js|ts]` file within you Next App:
-
-```typescript
-import { collectEvents } from 'next-collect/server'
-import { nextCollectOpts } from "./next-collect.config";
-
-export default collectEvents(nextCollectOpts);
-```
-
-or wrap an existing middleware:
-
-```typescript
-import { collectEvents } from 'next-collect/server'
-import { nextCollectOpts } from "./next-collect.config";
-
-const middleware = (req, res) => {
- ....
-}
-
-export default collectEvents({
-    middleware: middleware,
-    ...nextCollectOpts
-});
-```
-
-#### Step 3. Create `pages/api/collect.ts`:
+Some events naturally happen on the client side. For example, user clicks on a button or scrolls down to a certain
+element on a page. For such cases, you can use `nextCollect` hook:
 
 ```tsx
+import { useCollect } from "next-collect/client"
 
-import { nextCollectOpts } from "next-collect";
-import { nextCollectOpts } from "../../next-collect.config";
+export default function Page() {
+  const { analytics } = useCollect()
 
-export default collectApiHandler(nextCollectOpts);
-```
-
-This step is required if you're going to use `useCollect()` hook (see below)
-
-
-## Drivers (destinations) configuration
-
-NextCollect is destination agnostic. It could send data to multiple destinations at once. We 
-support [Jitsu](https://jitsu.com), Segment, PostgREST (Supabase) and arbitary HTTP destinations. 
-See destination reference below
-
-Most reads config from env variables, or config can be passed to destination directly. Example:
-
-```typescript
-
-import { NextCollectOpts } from "next-collect/server"
-
-export const nextCollectOpts: NextCollectOpts = {
-  destinations: [
-    {type: "jitsu", opts: {key: "{API KEY}", host: "{JITSU HOST}"}},
-    process.env.SEGMENT_KEY && "segment",
-  ]
+  return <button onClick={() => analytics.track("button_click")}>Click me!</button>
 }
 ```
 
-## Client-Side Data Collection - `useCollect()` hook
-
-Not all events can be tracked on server-side. Some events happen when user interacts with UI, and no server code is touched.
-
-In this case, you should use `useCollect()` hook. Event is sent to a `/api/collect`, and the "hydrated" on server
+Make sure that you're component is wrapped with `NextCollectProvider`:
 
 ```tsx
-const collect = useCollect()
+import { NextCollectProvider } from "next-collect/client"
 
-return <button onClick={() => collect.event("button_click", {buttonId: "Sign Up"})}>Click Me!</button>
-```
-
-## `page_load` events
-
-The code below sends a `page_load` event each time page has been loaded (See [demo app](https://github.com/jitsucom/next-collect/blob/main/apps/nextjs-demo-app/pages/_app.tsx) for the full example):
-
-```typescript
-  const collect = useCollector()
-  const router = useRouter()
-  useEffect(() => {
-    collect.event("page_load", {})
-  }, [router.asPath])
-```
-
-
-### Advanced: Custom API Route
-
-Instead of `/api/collect` you can use any other route. Just don't forget to move your `collectApiHandler()` to the correct api route
-file (`pages/api/alt-collect.ts` in this example)
-
-```tsx
-<EventCollectionProvider options={{apiPath: "/api/alt-collect"}}>
-   ...
-</EventCollectionProvider>
-```
-
-## Next.JS `12.1` -> `12.2` Migration
-
-Next.JS team has changed page middleware API in between versions. Here's a detailed [changelog](https://nextjs.org/docs/messages/middleware-upgrade-guide),
-and `>=0.2.0` version is only compatible with Next.Js 12.2. For older versions, you can a [legacy 0.1.* versions](https://github.com/jitsucom/next-collect/tree/next_middleware_legacy).
-
-
-## Next.JS middleware and prefetch
-
-When browser loads Next.JS page, it will also [prefetch](https://nextjs.org/docs/api-reference/next/link) most of the links coming
-out from this page. This technique is called prefetching and can't be turned off.
-
-During the prefetch request, Next.JS will call middleware code and `page_request` event
-will be recorded. If user doesn't follow the link, the request still be processed. If user follows the
-link, the page will be displayed and no subsequent middleware call will be made. In other
-words, there's no way to tell if user actually visited the page or it has been just prefetch. See discussion on [Next.JS GitHub](https://github.com/vercel/next.js/discussions/37736).
-
-If this is not desirable, you should use [client-side collection](#client-side-data-collection---usecollect-hook) with `useCollect()` hook
-
-
-
-## Advanced usage
-
-### Custom properties
-
-`next-collect` allows adding custom properties to the event. You probably want to do so if you authorize users,
-hence you want to see user id / email attached to the event. Here's an example of `next-collect.config.ts`:
-
-
-```typescript
-import { NextCollectOpts } from "next-collect/server"
-
-function getUser(userCookie) {
-  return {id: ..., email:...}
-}
-
-export const nextCollectOpts: NextCollectOpts = {
-  destinations: [],
-  extend: (req: NextRequest | NextApiRequest) => {
-    if (req instanceof NextRequest) {
-      return {
-        user: parseUserCookie(req.cookies.get("user")),
-        anotherProperty: ...
-      }
-    } else {
-      return {
-        user: parseUserCookie(req.cookies["user"]),
-        anotherProperty: ...
-      }
-    }
-  }
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return <NextCollectProvider>{children}</NextCollectProvider>
 }
 ```
 
-Note that `extend` takes `NextRequest | NextApiRequest` as an argument. Unfortunately, `Next.JS` exposes to different
-APIs in different environments, so you would need to implement this logic for both `NextRequest` and `NextApiRequest`
+---
 
-The easiest way to get user id and email is to save it to cookies, and get it from `req.cookies` in `getUser()` function.
+## Advanced Configuration
 
-Furthermore, this example adds `anotherProperty` to event. You can add as many properties as you want
-
-## Destination Reference
-
-At the moment, NextCollect supports Jitsu (`jitsu`), Segment(`segment`) and PostgREST (`postgres`). 
-
-### Jitsu
-
-#### Config
-
-<table>
-<thead><tr>
-   <td><b>Parameter</b></td>
-   <td><b>Documentation</b></td>
-</tr></thead>
-<tbody>
-<tr>
-   <td><code>opts.key</code> or <code>process.env.JITSU_KEY</code><br /><i>(required *)</i></td>
-   <td>Jitsu Server API key</td>
-</tr>
-<tr>
-   <td><code>opts.key</code> or <code>process.env.JITSU_KEY</code><br /><i>(required *)</i></td>
-   <td>Jitsu host. Must start with <code>https://</code> or <code>http://</code>. Example: `t.jitsu.com</td>
-</tr>
-</tbody>
-</table>
-
-### Segment
-
-#### Config
-
-<table>
-<thead><tr>
-   <td><b>Parameter</b></td>
-   <td><b>Documentation</b></td>
-</tr></thead>
-<tbody>
-<tr>
-   <td><code>opts.key</code> or <code>process.env.SEGMENT_KEY</code><br /><i>(required *)</i></td>
-   <td>Segment write API key</td>
-</tr>
-</tbody>
-</table>
-
-
-### PostgREST
-
-Jitsu supports [PostgREST](https://postgrest.org/en/stable/) (including Supabase which is [based on PostgREST](https://supabase.com/docs/guides/api#rest-api-2)).
-
-A table with all fields should be created prior to using this destination.
-
-#### Config
-
-<table>
-<thead><tr>
-   <td><b>Parameter</b></td>
-   <td><b>Documentation</b></td>
-</tr></thead>
-<tbody>
-<tr>
-   <td><code>opts.url</code> or <code>process.env.POSTGREST_URL</code><br /><i>(required *)</i></td>
-   <td>Url of PostgREST server</td>
-</tr>
-<tr>
-   <td><code>opts.url</code> or <code>process.env.POSTGREST_URL</code><br /><i>(required *)</i></td>
-   <td>Url of PostgREST server</td>
-</tr>
-</tbody>
-</table>
-
+`next-collect` is deeply customizable. It's possible to define a custom enrichment, provide custom destination,
+change `/api/ev` route and many more. Please see `NextCollectConfig` type for a full list of options. Pass
+an instance of `NextCollectConfig` to `nextCollectMiddleware`
 
 ## Contributing
 
 Please see [CONTRIBUTING.md](CONTRIBUTING.md)
-
-
-

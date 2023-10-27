@@ -1,19 +1,13 @@
 {
   "pipeline": {
     "test": {
-      "dependsOn": [
-        "build"
-      ]
+      "dependsOn": ["build"]
     },
     "clean": {
-      "dependsOn": [
-        "^clean"
-      ]
+      "dependsOn": ["^clean"]
     },
     "lint": {
-      "dependsOn": [
-        "^lint"
-      ]
+      "dependsOn": ["^lint"]
     },
     "build": {
       "dependsOn": [
@@ -27,15 +21,11 @@
       ]
     },
     "prettier:fix": {
-      "dependsOn": [
-        "^prettier:fix"
-      ]
+      "dependsOn": ["^prettier:fix"]
     },
     "dev": {
       "cache": false
     }
   },
-  "globalDependencies": [
-    "tsconfig.json"
-  ]
+  "globalDependencies": ["tsconfig.json"]
 }

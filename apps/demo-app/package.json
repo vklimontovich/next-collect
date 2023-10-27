@@ -1,0 +1,26 @@
+{
+  "name": "demo-app",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 6534",
+    "build": "next build",
+    "start": "next start -p 6534"
+  },
+  "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.8.1",
+    "@supabase/supabase-js": "^2.38.3",
+    "next": "^13.5.6",
+    "next-auth": "^4.24.3",
+    "next-collect": "workspace:*",
+
+    "react": "^18",
+    "react-dom": "^18"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "typescript": "^5"
+  }
+}
