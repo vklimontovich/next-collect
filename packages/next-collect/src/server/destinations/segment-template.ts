@@ -1,14 +1,13 @@
 import { Defaults, ServerDestination, ServerDestinationFactory } from "./types"
 import { AnalyticsServerEvent } from "segment-protocol"
 import { ServerRequest } from "../config"
-import { isDebug } from "../debug";
-import { trimWriteKey } from "./util";
+import { isDebug } from "../debug"
+import { trimWriteKey } from "./util"
 
 export type SegmentConfigTemplate = {
   writeKey: string
   apiBase?: string
 }
-
 
 function base64(str: string) {
   //should we use something else here?

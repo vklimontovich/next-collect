@@ -2,7 +2,7 @@ import { createSegmentLikeDestination } from "./segment-template"
 import { echoDestination } from "./echo"
 import { ServerDestinationFactory } from "./types"
 import { ServerDestinationLike } from "../config"
-import { plausible } from "./plausible";
+import { plausible } from "./plausible"
 
 export const coreDestinations: Record<string, ServerDestinationFactory> = {
   segment: createSegmentLikeDestination({

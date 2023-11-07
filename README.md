@@ -5,17 +5,17 @@
 `next-collect` is a library for server-side analytics integration for Next.Js. It's design to work with various analytics
 backends
 
-* [Jitsu](https://jitsu.com)
-* [Segment](https://segment.com)
-* [Plausible.io](https://plausible.io)
+- [Jitsu](https://jitsu.com)
+- [Segment](https://segment.com)
+- [Plausible.io](https://plausible.io)
 
 Following integrations are coming soon:
 
-* Rudderstack
-* Mixpanel
-* Amplitude
-* June.so
-* Posthog
+- Rudderstack
+- Mixpanel
+- Amplitude
+- June.so
+- Posthog
 
 If you're not familiar with server-side event collection, please read [this article]
 (https://jitsu.com/blog/what-is-server-side-event-tracking) first.

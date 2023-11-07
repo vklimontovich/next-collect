@@ -6,7 +6,7 @@ import {
   createAnalytics,
   EventType,
   eventTypes,
-  inferAnalyticsContextFields
+  inferAnalyticsContextFields,
 } from "segment-protocol"
 import {
   AbsoluteUrlPath,
@@ -61,7 +61,7 @@ function parseNextUrl(req: NextRequest): DecomposedUrl {
 
 function getRequestIp(req: NextRequest): string | undefined {
   //it's not clear how to grap an IP from a NextRequest if it's not in headers
-  return (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || req.ip)?.split(",")[0] || undefined;
+  return (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || req.ip)?.split(",")[0] || undefined
 }
 
 function getServerRequest(req: NextRequest): ServerRequest {
