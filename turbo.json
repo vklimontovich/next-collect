@@ -1,31 +1,43 @@
 {
   "pipeline": {
     "test": {
-      "dependsOn": ["build"]
+      "dependsOn": [
+        "build"
+      ]
     },
     "clean": {
-      "dependsOn": ["^clean"]
+      "dependsOn": [
+        "^clean"
+      ]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": [
+        "^lint"
+      ]
     },
     "build": {
       "dependsOn": [
         "clean",
-        "lint",
-        "$JITSU_KEY",
-        "$JITSU_SERVER",
-        "$SEGMENT_KEY",
-        "$POSTGREST_URL",
-        "$POSTGREST_API_KEY"
+        "lint"
+      ],
+      "env": [
+        "JITSU_KEY",
+        "JITSU_SERVER",
+        "SEGMENT_KEY",
+        "POSTGREST_URL",
+        "POSTGREST_API_KEY"
       ]
     },
     "prettier:fix": {
-      "dependsOn": ["^prettier:fix"]
+      "dependsOn": [
+        "^prettier:fix"
+      ]
     },
     "dev": {
       "cache": false
     }
   },
-  "globalDependencies": ["tsconfig.json"]
+  "globalDependencies": [
+    "tsconfig.json"
+  ]
 }

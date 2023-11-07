@@ -3,7 +3,19 @@
 # Overview
 
 `next-collect` is a library for server-side analytics integration for Next.Js. It's design to work with various analytics
-backends, including [Jitsu](https://jitsu.com), [Segment](https://segment.com), [Rudderstack](https://rudderstack.com), Mixpanel (soon) and Amplitude (soon).
+backends
+
+* [Jitsu](https://jitsu.com)
+* [Segment](https://segment.com)
+* [Plausible.io](https://plausible.io)
+
+Following integrations are coming soon:
+
+* Rudderstack
+* Mixpanel
+* Amplitude
+* June.so
+* Posthog
 
 If you're not familiar with server-side event collection, please read [this article]
 (https://jitsu.com/blog/what-is-server-side-event-tracking) first.
@@ -44,8 +56,12 @@ Tell next collect where to send the data. Put following variables to `.env` file
 SEGMENT_KEY=...
 
 #For Jitsu
+JITSU_WRITE_KEY=...
 
-#For Rudderstack
+#For Plausible
+PLAUSIBLE_DOMAIN=...
+
+JITSU_WRITE_KEY
 
 ```
 

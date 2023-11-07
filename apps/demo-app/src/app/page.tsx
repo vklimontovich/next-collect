@@ -54,8 +54,7 @@ export default function Home() {
           Open <RouteLink>/api/ev/debug?path=/page/url</RouteLink> to see an example of <code>page</code> event
         </li>
         <li>
-          Open <RouteLink>/api/login</RouteLink> to trigger a <code>login</code> event, or{" "}
-          <RouteLink>/api/signup</RouteLink> to trigger a <code>signup</code> event
+          Open <RouteLink>/api/signup</RouteLink> to trigger a <code>signup</code> event
         </li>
         <li>
           Send event from client side: <SendEvent />

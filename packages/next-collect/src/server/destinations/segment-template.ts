@@ -1,23 +1,14 @@
 import { Defaults, ServerDestination, ServerDestinationFactory } from "./types"
 import { AnalyticsServerEvent } from "segment-protocol"
 import { ServerRequest } from "../config"
+import { isDebug } from "../debug";
+import { trimWriteKey } from "./util";
 
 export type SegmentConfigTemplate = {
   writeKey: string
   apiBase?: string
 }
 
-function trimWriteKey(writeKey: string) {
-  let prefixSize = 3
-  if (writeKey.length < 5) {
-    return "***"
-  } else if (writeKey.length < 8) {
-    prefixSize = 1
-  } else if (writeKey.length < 11) {
-    prefixSize = 2
-  }
-  return `${writeKey.substring(0, prefixSize)}***${writeKey.substring(writeKey.length - prefixSize)}`
-}
 
 function base64(str: string) {
   //should we use something else here?
@@ -49,16 +40,16 @@ export function createSegmentLikeDestination<T extends SegmentConfigTemplate = S
         apiBase = apiBase.substring(0, apiBase.length - 1)
       }
       //fix protocol if user forgot to add it
-      if (apiBase.indexOf("http://") != 0 || apiBase.indexOf("https://")) {
+      if (apiBase.indexOf("http://") !== 0 && apiBase.indexOf("https://") !== 0) {
         apiBase = "https://" + apiBase
       }
       return {
         describe() {
-          return `${name} @ ${config.apiBase} (key: ${trimWriteKey})`
+          return `${name} @ ${config.apiBase} (key: ${trimWriteKey(config.writeKey)})`
         },
         async on(opts: { event: AnalyticsServerEvent; req: ServerRequest }): Promise<void> {
           const url = `${apiBase}/${opts.event.type}`
-          let requestInit = {
+          const requestInit = {
             method: "POST",
             headers: {
               "Content-type": "application/json",
@@ -66,9 +57,29 @@ export function createSegmentLikeDestination<T extends SegmentConfigTemplate = S
             },
             body: JSON.stringify(opts.event),
           }
-          const result = await fetch(url, requestInit)
+          let result
+          try {
+            result = await fetch(url, requestInit)
+          } catch (e: any) {
+            if (isDebug) {
+              console.error(
+                `Failed to send event to ${requestInit.method} ${url}: ${
+                  e?.message || "unknown reason"
+                }. Body: \n${JSON.stringify(opts.event, null, 2)}`,
+                e
+              )
+            }
+            throw new Error(
+              `Failed to send event to ${requestInit.method} ${url}: ${e?.message || "unknown reason"}`,
+              e
+            )
+          }
+
           if (!result.ok) {
-            throw new Error(`Failed to send event to ${name}: ${result.status} ${await result.text()}`)
+            throw new Error(`Failed to send event to ${url}: ${result.status} ${await result.text()}`)
+          }
+          if (isDebug) {
+            console.log(`Successfully sent event to ${url}: ${result.status} ${await result.text()}`)
           }
         },
       }

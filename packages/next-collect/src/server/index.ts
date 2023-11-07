@@ -6,6 +6,7 @@ import {
   createAnalytics,
   EventType,
   eventTypes,
+  inferAnalyticsContextFields
 } from "segment-protocol"
 import {
   AbsoluteUrlPath,
@@ -59,7 +60,8 @@ function parseNextUrl(req: NextRequest): DecomposedUrl {
 }
 
 function getRequestIp(req: NextRequest): string | undefined {
-  return (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || req.ip)?.split(",")[0] || undefined
+  //it's not clear how to grap an IP from a NextRequest if it's not in headers
+  return (req.headers.get("x-forwarded-for") || req.headers.get("x-real-ip") || req.ip)?.split(",")[0] || undefined;
 }
 
 function getServerRequest(req: NextRequest): ServerRequest {
@@ -383,26 +385,24 @@ function createAnalyticsEvent(
   eventType: string
 ): AnalyticsServerEvent {
   const referrer = serverRequest.header("referer") || ""
-  if (!referrer) {
-    console.warn(`Referrer is not present in request ${serverRequest.path}: `)
-  }
-  const context: RequiredAnalyticsContext = {
+  const context: RequiredAnalyticsContext = inferAnalyticsContextFields({
     ip: serverRequest.ip,
+    requestIp: serverRequest.ip,
+    locale: (serverRequest.header("accept-language") || "").split(",")[0],
     userAgent: serverRequest.header("user-agent"),
     library: {
       name: "next-collect",
       version: "0.0.0",
     },
     page: {
-      host: serverRequest.externalUrl.decomposed.host,
-      path: serverRequest.path,
+      //not possible to get an encoding from server context. That's fine,
+      //it looks like a legacy parameter
+      //encoding: ???
       referrer: referrer,
-      referring_domain: getDomain(referrer),
-      search: getQueryString(serverRequest.externalUrl.decomposed),
       title: "",
       url: serverRequest.externalUrl.url,
     },
-  }
+  }) as RequiredAnalyticsContext
   const anonymousId = setAnonymousId(serverRequest, opts.cookieName, opts.cookieDomain)
   let isKnownEventType = eventTypesSet.has(eventType.toLowerCase())
   return {

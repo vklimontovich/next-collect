@@ -2,6 +2,7 @@ import { createSegmentLikeDestination } from "./segment-template"
 import { echoDestination } from "./echo"
 import { ServerDestinationFactory } from "./types"
 import { ServerDestinationLike } from "../config"
+import { plausible } from "./plausible";
 
 export const coreDestinations: Record<string, ServerDestinationFactory> = {
   segment: createSegmentLikeDestination({
@@ -13,7 +14,7 @@ export const coreDestinations: Record<string, ServerDestinationFactory> = {
     }),
   }),
   jitsu: createSegmentLikeDestination({
-    defaults: { apiBase: "https://api.segment.io/v1" },
+    defaults: { apiBase: "https://use.jitsu.com/api/s/s2s" },
     name: "Jitsu",
     configFromEnv: () => ({
       apiBase: process.env.JITSU_API_BASE,
@@ -28,6 +29,7 @@ export const coreDestinations: Record<string, ServerDestinationFactory> = {
       writeKey: process.env.RUDDER_STACK_WRITE_KEY,
     }),
   }),
+  plausible,
   echo: echoDestination,
 } as const
 
@@ -41,8 +43,9 @@ function isTruish(envVar?: string) {
  */
 export const selfConfigurableDestinations = [
   process.env.SEGMENT_WRITE_KEY && "segment",
-  process.env.JITSU_API_BASE && process.env.JITSU_WRITE_KEY && "jitsu",
+  process.env.JITSU_WRITE_KEY && "jitsu",
   process.env.RUDDER_STACK_API_BASE && process.env.RUDDER_STACK_WRITE_KEY && "rudder",
+  process.env.PLAUSIBLE_DOMAIN && "plausible",
   isTruish(process.env.NEXT_COLLECT_ECHO) && "echo",
 ] as ServerDestinationLike[]
 

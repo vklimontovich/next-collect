@@ -1,7 +1,7 @@
 "use client"
 import React, { createContext, ReactNode, useContext } from "react"
 import { AbsoluteUrlPath, DecomposedUrl, getQueryString, isDefaultPort, UrlProtocol } from "../isolibs/url"
-import { AnalyticsInterface, createAnalytics } from "segment-protocol"
+import { AnalyticsInterface, createAnalytics, inferAnalyticsContextFields } from "segment-protocol"
 import { getUtmsFromQueryString } from "../isolibs/utm"
 import { cookiePrefix, groupPersistKey, GroupProps, userPersistKey, UserProps } from "../isolibs/persist"
 import { clearCookie, getCookie, setCookie } from "./cookie"
@@ -118,31 +118,25 @@ export function useCollect(): EventCollectionClient {
       if (typeof window === "undefined") {
         throw new Error("useCollector() must be used on the client side")
       }
-      const url = getPublicUrl()
-      const utms = getUtmsFromQueryString(url.queryString)
       return {
-        context: {
+        context: inferAnalyticsContextFields({
           page: {
-            path: url.path,
             referrer: window.document.referrer,
-            referring_domain: document.referrer.split("/")?.[2],
-            host: url.host,
-            search: getQueryString(url),
             url: window.location.href,
             title: window.document.title,
           },
           userAgent: window.navigator.userAgent,
           userAgentVendor: window.navigator.vendor,
           locale: window.navigator.language,
+          encoding: window.document.characterSet,
           library: {
             name: "next-collect",
             version: "0.0.0",
           },
-          campaign: Object.entries(utms).reduce((res, [key, value]) => ({ ...res, [removeUtmPrefix(key)]: value }), {}),
           clientIds: {
             //todo - read client ids from cookies
           },
-        },
+        }),
       }
     },
     handler: async event => {

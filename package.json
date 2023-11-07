@@ -14,7 +14,7 @@
     "test": "turbo run test",
     "dev": "turbo run dev --continue",
     "release": "pnpm build && monorel --npm-tag latest --filter './packages/next-collect'",
-    "canary:publish": "monorel --filter './packages/next-collect' --version '0.2.0-alpha.{rev}.{time}' --npm-tag canary --publish",
+    "canary:publish": "monorel --filter './packages/next-collect' --version '1.0.0-alpha.{rev}.{time}' --npm-tag canary --publish",
     "lint": "turbo run lint",
     "format:check": "prettier --check --config ./.prettierrc.json --ignore-path ./.prettierignore .",
     "format": "prettier --write --config ./.prettierrc.json --ignore-path ./.prettierignore .",
@@ -22,17 +22,17 @@
   },
   "devDependencies": {
     "@types/json5": "^2.2.0",
-    "@types/minimist": "^1.2.2",
-    "@types/node": "^17.0.35",
-    "beachball": "^2.22.3",
-    "husky": "^8.0.0",
-    "json5": "^2.2.1",
-    "minimist": "^1.2.6",
-    "monorel": "^0.3.0",
+    "@types/minimist": "^1.2.5",
+    "@types/node": "^17.0.45",
+    "beachball": "^2.39.0",
+    "husky": "^8.0.3",
+    "json5": "^2.2.3",
+    "minimist": "^1.2.8",
+    "monorel": "^0.3.1",
     "prettier": "latest",
-    "ts-node": "^10.8.0",
-    "turbo": "^1.2.11",
-    "typescript": "^5"
+    "ts-node": "^10.9.1",
+    "turbo": "^1.10.16",
+    "typescript": "^5.2.2"
   },
   "engines": {
     "yarn": ">=1000",
@@ -40,10 +40,7 @@
     "npm": ">=1000",
     "node": ">=14 <=16"
   },
-  "packageManager": "pnpm",
+  "packageManager": "pnpm@8",
   "repository": "jitsucom/next-collect",
-  "author": "Jitsu Team <dev@jitsu.com>",
-  "dependencies": {
-    "segment-protocol": "0.9.1-alpha.5.20231023214344"
-  }
+  "author": "Jitsu Team <dev@jitsu.com>"
 }
