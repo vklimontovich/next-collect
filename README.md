@@ -18,8 +18,7 @@ Following integrations are coming soon:
 - June.so
 - Posthog
 
-If you're not familiar with server-side event collection, please read [this article]
-(https://jitsu.com/blog/what-is-server-side-event-tracking) first.
+If you're not familiar with server-side event collection, please read [this article](https://jitsu.com/blog/what-is-server-side-event-tracking) first.
 
 ## Quick Start
 
