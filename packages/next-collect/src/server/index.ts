@@ -1,4 +1,4 @@
-import { NextFetchEvent, NextMiddleware, NextRequest, NextResponse } from "next/server"
+import { NextFetchEvent, NextMiddleware, NextRequest, NextResponse, userAgent } from "next/server"
 import {
   AnalyticsContext,
   AnalyticsInterface,
@@ -222,6 +222,13 @@ const defaultEnrichment: EventEnrichmentFunction = async (event, req) => {
     ...event.properties,
     ...(getVercelEnvironment() || {}),
   }
+  const matchedPath = req.header("x-matched-path")
+  if (matchedPath) {
+    if (!event.context.page) {
+      event.context.page = {}
+    }
+    event.context.page.matchedPath = matchedPath
+  }
 }
 
 /**
@@ -267,7 +274,7 @@ async function handleCollectApiRequest(
   if (!body.anonymousId) {
     body.anonymousId = setAnonymousId(serverRequestContext, opts.cookieName, opts.cookieDomain)
   }
-  body.request_ip = body.ip = req.ip
+  body.requestIp = body.ip = req.ip
   body.receivedAt = new Date().toISOString()
   await eventPipeline(body, serverRequestContext, opts, dests)
   return okResponse
@@ -313,7 +320,9 @@ async function eventPipeline(
   if (!event.timestamp) {
     event.timestamp = event.sentAt || new Date().toISOString()
   }
-  const eventEnrichmentResult = (opts.enrich || (() => {}))(event, req, ev => defaultEnrichment(ev, req, () => {}))
+  const eventEnrichmentResult = (opts.enrich || defaultEnrichment)(event, req, ev =>
+    defaultEnrichment(ev, req, () => {})
+  )
   if (eventEnrichmentResult instanceof Promise) {
     //wait if needed
     await eventEnrichmentResult
@@ -384,12 +393,15 @@ function createAnalyticsEvent(
   opts: NextCollectConfigWithDefaults,
   eventType: string
 ): AnalyticsServerEvent {
+  const parsedUserAgent = userAgent(serverRequest.nextRequest) as any
+  //remove ua field, since it could lead to duplication of user agent info
+  delete parsedUserAgent["ua"]
   const referrer = serverRequest.header("referer") || ""
   const context: RequiredAnalyticsContext = inferAnalyticsContextFields({
     ip: serverRequest.ip,
-    requestIp: serverRequest.ip,
     locale: (serverRequest.header("accept-language") || "").split(",")[0],
     userAgent: serverRequest.header("user-agent"),
+    userAgentInfo: parsedUserAgent,
     library: {
       name: "next-collect",
       version: "0.0.0",
@@ -406,7 +418,7 @@ function createAnalyticsEvent(
   const anonymousId = setAnonymousId(serverRequest, opts.cookieName, opts.cookieDomain)
   let isKnownEventType = eventTypesSet.has(eventType.toLowerCase())
   return {
-    request_ip: serverRequest.ip,
+    requestIp: serverRequest.ip,
     type: isKnownEventType ? (eventType as EventType) : "track",
     name: isKnownEventType ? undefined : eventType,
     context,
@@ -456,6 +468,14 @@ function getDestinationChain(opts: {
     .filter(d => !!d) as ServerDestination[]
 }
 
+/**
+ * Checks if the request will end up in a 404 page. This is a very hacky way to do it,
+ * and it works only on vercel
+ */
+function is404(req: NextRequest) {
+  return !!(req.headers.get("x-vercel-deployment-url") && !req.headers.get("x-matched-path"))
+}
+
 export function nextCollectMiddleware(_opts: NextCollectConfig & { middleware?: NextMiddleware } = {}): NextMiddleware {
   return async (request, event) => {
     const serverRequest = getServerRequest(request)
@@ -482,6 +502,13 @@ export function nextCollectMiddleware(_opts: NextCollectConfig & { middleware?: 
     }
     const serverRequestContext = getServerRequestContext(serverRequest, response)
     const analyticsEvent = createAnalyticsEvent(serverRequestContext, { ...opts, cookieDomain }, eventType)
+    if (is404(request)) {
+      if (!analyticsEvent.properties) {
+        //initialize properties if needed
+        analyticsEvent.properties = {}
+      }
+      analyticsEvent.properties["pageNotFound"] = true
+    }
     await eventPipeline(analyticsEvent, serverRequestContext, { ...opts, cookieDomain }, destinationExecChain)
     return response
   }

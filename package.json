@@ -11,7 +11,7 @@
     "clean": "pnpm run -r clean",
     "build": "pnpm run -r build",
     "test": "pnpm run -r test",
-    "dev": "pnpm run -r dev",
+    "dev": "pnpm run -r --stream --parallel dev",
     "release": "pnpm build && monorel --npm-tag latest --filter './packages/next-collect'",
     "canary:publish": "monorel --filter './packages/next-collect' --version '2.0.0-alpha.{rev}.{time}' --npm-tag canary --publish",
     "lint": "turbo run lint",
