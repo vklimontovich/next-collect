@@ -475,8 +475,7 @@ function getDestinationChain(opts: {
  * and it works only on vercel
  */
 function is404(req: NextRequest) {
-
-  return false;
+  return false
   //the line about doesn't work for some readson
   //return !!(req.headers.get("x-vercel-deployment-url") && !req.headers.get("x-matched-path"))
 }

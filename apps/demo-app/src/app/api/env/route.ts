@@ -2,7 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nextCollect } from "next-collect/server"
 import { nextCollectConfig } from "@/middleware"
-import { isTruish } from "@/lib/lib";
+import { isTruish } from "@/lib/lib"
 
 function getUserId(req: NextRequest) {
   return req.nextUrl.searchParams.get("userId") || "sampleUserId"
@@ -14,7 +14,6 @@ function getUserProps(req: NextRequest): { email: string; name: string } {
     name: req.nextUrl.searchParams.get("name") || "John Doe",
   }
 }
-
 
 function sortByKey(dict: Record<string, any>): Record<string, any> {
   return Object.fromEntries(Object.entries(dict).sort(([a], [b]) => a.localeCompare(b)))

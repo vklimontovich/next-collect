@@ -1,4 +1,5 @@
-![How Next Collect Works](./README/hero.png)
+![How Next Collect Works](./README/hero-light.png?raw=true#gh-light-mode-only)
+![How Next Collect Works](./README/hero-dark.png?raw=true#gh-dark-mode-only)
 
 # Overview
 

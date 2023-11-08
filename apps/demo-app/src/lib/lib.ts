@@ -7,3 +7,5 @@ export function isTruish(val?: string) {
       val.toLowerCase() === "on")
   )
 }
+
+export const nextCollectGithubURL = "https://github.com/jitsucom/next-collect"
