@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { nextCollect } from "next-collect/server"
 import { nextCollectConfig } from "@/middleware"
+import { isTruish } from "@/lib/lib";
 
 function getUserId(req: NextRequest) {
   return req.nextUrl.searchParams.get("userId") || "sampleUserId"
@@ -14,22 +15,13 @@ function getUserProps(req: NextRequest): { email: string; name: string } {
   }
 }
 
-function isTruish(val?: string) {
-  return (
-    val &&
-    (val.toLowerCase() === "true" ||
-      val.toLowerCase() === "1" ||
-      val.toLowerCase() === "yes" ||
-      val.toLowerCase() === "on")
-  )
-}
 
 function sortByKey(dict: Record<string, any>): Record<string, any> {
   return Object.fromEntries(Object.entries(dict).sort(([a], [b]) => a.localeCompare(b)))
 }
 
 export async function GET(req: NextRequest, res: NextResponse) {
-  const disableDebugInfo = isTruish(process.env.DISABLE_DEBUG_INFO)
+  const disableDebugInfo = !isTruish(process.env.ENABLE_DEBUG_PAGES)
 
   return NextResponse.json({
     env: disableDebugInfo ? undefined : sortByKey(process.env),

@@ -475,7 +475,10 @@ function getDestinationChain(opts: {
  * and it works only on vercel
  */
 function is404(req: NextRequest) {
-  return !!(req.headers.get("x-vercel-deployment-url") && !req.headers.get("x-matched-path"))
+
+  return false;
+  //the line about doesn't work for some readson
+  //return !!(req.headers.get("x-vercel-deployment-url") && !req.headers.get("x-matched-path"))
 }
 
 export function nextCollectMiddleware(_opts: NextCollectConfig & { middleware?: NextMiddleware } = {}): NextMiddleware {
