@@ -179,6 +179,7 @@ export type Geo = {
   country?: string
   region?: string
   city?: string
+  timezone?: string
   postalCode?: string
   location?: {
     lat?: number
@@ -204,8 +205,9 @@ function getVercelGeo(req: ServerRequest): Geo {
   const longitude = req.header("x-vercel-ip-longitude")
   return {
     country: req.header("x-vercel-ip-country"),
-    region: req.header("x-vercel-ip-region"),
+    region: req.header("x-vercel-ip-country-region"),
     city: req.header("x-vercel-ip-city"),
+    timezone: req.header("x-vercel-ip-timezone"),
     location:
       longitude || latitude
         ? { lat: latitude ? parseFloat(latitude) : undefined, lon: longitude ? parseFloat(longitude) : undefined }
