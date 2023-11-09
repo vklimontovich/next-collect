@@ -1,6 +1,10 @@
-import React, { PropsWithChildren, ReactNode } from "react";
+import React, { PropsWithChildren, ReactNode } from "react"
 
-export const Section: React.FC<PropsWithChildren<{ title: string; footer?: ReactNode }>> = ({ title, children, footer }) => {
+export const Section: React.FC<PropsWithChildren<{ title: string; footer?: ReactNode }>> = ({
+  title,
+  children,
+  footer,
+}) => {
   return (
     <div>
       <section className={`rounded-t-lg ${!footer ? "rounded-b-lg" : ""} border border-zinc-200 px-4 py-6 bg-white`}>

@@ -41,6 +41,7 @@ import {
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies"
 
 import * as cookie from "cookie"
+import { randomId } from "../isolibs/lib"
 
 /**
  * Parses next url
@@ -159,10 +160,6 @@ function getDomain(referrer: string) {
   } catch (e) {
     return ""
   }
-}
-
-function randomId() {
-  return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
 }
 
 export function setAnonymousId(ctx: ServerRequestContext, cookieName: string, cookieDomain: string): string {

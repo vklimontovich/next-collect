@@ -4,8 +4,8 @@ import { RouteLink } from "@/components/route-link"
 import { useCollect } from "next-collect/client"
 import Link from "next/link"
 import { Button } from "@/components/button"
-import { Section } from "@/components/section";
-import { nextCollectGithubURL } from "@/lib/lib";
+import { Section } from "@/components/section"
+import { nextCollectGithubURL } from "@/lib/lib"
 const SendEvent: React.FC<{}> = () => {
   const [clicked, setClicked] = React.useState(0)
   const { analytics } = useCollect()
@@ -55,13 +55,17 @@ const Identify: React.FC<{}> = () => {
       title="Identify user"
       footer={
         <div className="flex justify-between">
-          <div>User:{" "}
-            <code>{userTraits ? JSON.stringify(userTraits): 'unknown'}</code>
+          <div>
+            User: <code>{userTraits ? JSON.stringify(userTraits) : "unknown"}</code>
           </div>
-          <Button onClick={() => {
-            analytics.identify(uid, { email, name })
-            setUserTraits({userId: uid, traits: {email, name}})
-          }}>Identify</Button>
+          <Button
+            onClick={() => {
+              analytics.identify(uid, { email, name })
+              setUserTraits({ userId: uid, traits: { email, name } })
+            }}
+          >
+            Identify
+          </Button>
         </div>
       }
     >
@@ -70,7 +74,7 @@ const Identify: React.FC<{}> = () => {
       <div className="flex flex-col gap-4 mt-4">
         <FormField value={uid} title="User Id" onChange={setUid} key="userId" />
         <FormField value={email} title="User Email" onChange={setEmail} key="userEmail" />
-        <FormField value={name} title="User Name" onChange={setName} key="userEmail" />
+        <FormField value={name} title="User Name" onChange={setName} key="userName" />
       </div>
     </Section>
   )
@@ -80,9 +84,10 @@ export default function Home() {
   return (
     <main className="flex flex-col gap-12 ">
       <div className="text-l">
-        This page demonstrates most of the features of <code>next-collect</code>. Read library documentation <Link href={nextCollectGithubURL}>on GitHub</Link>
+        This page demonstrates most of the features of <code>next-collect</code>. Read library documentation{" "}
+        <Link href={nextCollectGithubURL}>on GitHub</Link>
       </div>
-        <Section title="Page view">
+      <Section title="Page view">
         Page view events are sent automatically by <code>middleware.ts</code>. Once page loads, you should see a new
         event in coming to destination. Go to <RouteLink>/internal-page/page1</RouteLink> or{" "}
         <RouteLink>/internal-page/page2</RouteLink> to see a new <code>page</code> event coming to destination.

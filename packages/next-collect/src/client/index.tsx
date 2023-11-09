@@ -1,12 +1,18 @@
 "use client"
-import React, { createContext, ReactNode, useContext } from "react"
-import { AbsoluteUrlPath, DecomposedUrl, getQueryString, isDefaultPort, UrlProtocol } from "../isolibs/url"
-import { AnalyticsInterface, createAnalytics, inferAnalyticsContextFields } from "segment-protocol"
-import { getUtmsFromQueryString } from "../isolibs/utm"
+import React, { createContext, PropsWithChildren, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { AbsoluteUrlPath, DecomposedUrl, isDefaultPort, UrlProtocol } from "../isolibs/url"
+import {
+  AnalyticsClientEvent,
+  AnalyticsInterface,
+  createAnalytics,
+  inferAnalyticsContextFields,
+} from "segment-protocol"
 import { cookiePrefix, groupPersistKey, GroupProps, userPersistKey, UserProps } from "../isolibs/persist"
 import { clearCookie, getCookie, setCookie } from "./cookie"
-
-export const EventCollectionContext = createContext<CollectOptions | null>(null)
+import { useParams, usePathname } from "next/navigation"
+import { tagDestinations, TagEventHandler, TagSpecification } from "./destinations"
+import { randomId } from "../isolibs/lib"
+export const EventCollectionContext = createContext<(CollectOptions & { tags?: TagEventHandler[] }) | null>(null)
 
 export interface CollectOptions {
   //Default is /api/collect. If you change it here, change it in next-collect.config.ts as well
@@ -31,12 +37,87 @@ const defaultOptions: Required<CollectOptions> = {
 export type NextCollectProviderOpts = {
   children: ReactNode
   options?: CollectOptions
-}
-export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ children, options }) => {
-  const Context = EventCollectionContext
-  return <Context.Provider value={options || {}}>{children}</Context.Provider>
+  tags?: TagSpecification[]
 }
 
+const AppRouterPageViewListener: React.FC<PropsWithChildren<{ onRouteChange: () => void }>> = ({
+  onRouteChange,
+  children,
+}) => {
+  const pathname = usePathname()
+  const params = useParams()
+  useEffect(() => {
+    onRouteChange()
+  }, [pathname, params])
+  return <>{children}</>
+}
+
+function getAnonymousId() {
+  //we should expose nc_id to a configuration at some point
+  //user can change a cookie name on server side, it should be possible here to
+  let anonymousId = getCookie('nc_id');
+  if (!anonymousId) {
+    console.log(`Can't find nc_id cookie, generating a new one: ` + window.document.cookie)
+    anonymousId = randomId();
+    setCookie(`nc_id`, anonymousId);
+  }
+  return anonymousId;
+}
+
+export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ children, options, tags }) => {
+  const Context = EventCollectionContext
+  const [initializedTags, setInitializedTags] = useState<TagEventHandler[] | undefined>(undefined)
+
+  const latestValue = useRef(initializedTags);
+
+  useEffect(() => {
+    if (tags) {
+      const tagHandlers: TagEventHandler[] = tags
+        .map(tag => {
+          const tagDestination = typeof tag.type === "string" ? tagDestinations[tag.type] : tag.type
+          if (!tagDestination) {
+            console.warn("Unknown tag type", tag.type)
+            return undefined
+          }
+          try {
+            return tagDestination.create(tag.opts || {})
+          } catch (e) {
+            console.warn("Error initializing tag", e)
+          }
+        })
+        .filter(Boolean) as TagEventHandler[]
+      setInitializedTags(tagHandlers)
+      latestValue.current = tagHandlers;
+    }
+  }, [])
+  const onRouteChange = useCallback(() => {
+    if (latestValue.current) {
+      if (typeof window === "undefined") {
+        throw new Error("useCollector() must be used on the client side. Window is not defined");
+      }
+      const event: AnalyticsClientEvent = {
+        messageId: randomId(),
+        type: "page",
+        context: inferAnalyticsContextFields(createAnalyticsContext(window)),
+        anonymousId: getAnonymousId(),
+        groupId: get<GroupProps>(groupPersistKey)?.groupId,
+        userId: get<UserProps>(userPersistKey)?.userId,
+      }
+      latestValue.current.forEach(tag => {
+        try {
+          tag.on(event)
+        } catch (e) {
+          console.warn("Error sending event to tag", event, e)
+        }
+      })
+    }
+  }, [initializedTags]);
+  return (
+    <AppRouterPageViewListener onRouteChange={onRouteChange}>
+      <Context.Provider value={{ ...(options || {}), tags: initializedTags }}>{children}</Context.Provider>
+    </AppRouterPageViewListener>
+  )
+}
 export type EventCollectionClient = {
   analytics: AnalyticsInterface
 }
@@ -83,7 +164,7 @@ function get<T = any>(key: string): T | undefined {
     try {
       return item ? JSON.parse(item) : undefined
     } catch (e) {
-      console.log(`Error parsing item ${key} from local storage`, e)
+      console.warn(`Error parsing item ${key} from local storage`, e)
     }
   }
   const cookieVal = getCookie(`${cookiePrefix}${key}`)
@@ -91,13 +172,34 @@ function get<T = any>(key: string): T | undefined {
     try {
       return JSON.parse(cookieVal)
     } catch (e) {
-      console.log(`Error parsing item ${key} from cookie`, e)
+      console.warn(`Error parsing item ${key} from cookie`, e)
     }
   }
 }
 
 //we should really put elsewhere. Does React allow to write into context?
 const state: { group?: GroupProps; user?: UserProps } = {}
+
+function createAnalyticsContext(window: any) {
+  return {
+    page: {
+      referrer: window.document.referrer,
+      url: window.location.href,
+      title: window.document.title,
+    },
+    userAgent: window.navigator.userAgent,
+    userAgentVendor: window.navigator.vendor,
+    locale: window.navigator.language,
+    encoding: window.document.characterSet,
+    library: {
+      name: "next-collect",
+      version: "0.0.0",
+    },
+    clientIds: {
+      //todo - read client ids from cookies
+    },
+  }
+}
 
 export function useCollect(): EventCollectionClient {
   const options = useContext(EventCollectionContext)
@@ -107,6 +209,7 @@ export function useCollect(): EventCollectionClient {
       "useCollector() must be used within a EventCollectionProvider. Wrap a parent component in <EventCollectionProvider> to fix this error."
     )
   }
+  const tags = options.tags
 
   const { apiPath } = {
     ...defaultOptions,
@@ -119,28 +222,19 @@ export function useCollect(): EventCollectionClient {
         throw new Error("useCollector() must be used on the client side")
       }
       return {
-        context: inferAnalyticsContextFields({
-          page: {
-            referrer: window.document.referrer,
-            url: window.location.href,
-            title: window.document.title,
-          },
-          userAgent: window.navigator.userAgent,
-          userAgentVendor: window.navigator.vendor,
-          locale: window.navigator.language,
-          encoding: window.document.characterSet,
-          library: {
-            name: "next-collect",
-            version: "0.0.0",
-          },
-          clientIds: {
-            //todo - read client ids from cookies
-          },
-        }),
+        context: inferAnalyticsContextFields(createAnalyticsContext(window)),
       }
     },
     handler: async event => {
-      console.log("Handling event", JSON.stringify(event, null, 2))
+      if (tags) {
+        tags.forEach(tag => {
+          try {
+            tag.on(event)
+          } catch (e) {
+            console.warn("Error sending event to tag", event, e)
+          }
+        })
+      }
       if (event.type === "identify") {
         const userState = {
           userId: event.userId,

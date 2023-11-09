@@ -4,9 +4,8 @@ import "./globals.css"
 import { NextCollectProvider } from "next-collect/client"
 import Link from "next/link"
 import { NextCollectLogo } from "@/components/logo"
-import { Github } from "lucide-react"
 import { GithubLogo } from "@/components/github-logo"
-import { nextCollectGithubURL } from "@/lib/lib";
+import { nextCollectGithubURL } from "@/lib/lib"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -29,17 +28,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="ml-2 italic mb-2">(Demo)</span>
             </Link>
             <div>
-              <Link
-                href={nextCollectGithubURL}
-                className="block hover:opacity-50 w-8 h-8 text-red-400"
-              >
+              <Link href={nextCollectGithubURL} className="block hover:opacity-50 w-8 h-8 text-red-400">
                 <GithubLogo />
               </Link>
             </div>
           </header>
           <section className="bg-zinc-50 grow">
             <div className="max-w-4xl mx-auto p-12">
-              <NextCollectProvider>{children}</NextCollectProvider>
+              <NextCollectProvider
+                tags={
+                  process.env.NEXT_PUBLIC_GOOGLE_TAG
+                    ? [{ type: "google-tag", opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GOOGLE_TAG } }]
+                    : []
+                }
+              >
+                {children}
+              </NextCollectProvider>
             </div>
           </section>
         </main>

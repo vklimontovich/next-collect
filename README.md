@@ -3,8 +3,8 @@
 
 # Overview
 
-`next-collect` is a library for server-side analytics integration for Next.Js. It's design to work with various analytics
-backends
+`next-collect` is a library for server-side analytics integration for Next.Js. It works
+with following platforms:
 
 - [Jitsu](https://jitsu.com)
 - [Segment](https://segment.com)
@@ -12,11 +12,11 @@ backends
 
 Following integrations are coming soon:
 
-- Rudderstack
 - Mixpanel
 - Amplitude
 - June.so
 - Posthog
+- Rudderstack
 
 If you're not familiar with server-side event collection, please read [this article](https://jitsu.com/blog/server-side-tracking) first.
 
@@ -48,7 +48,7 @@ export default nextCollectMiddleware({ middleware })
 
 ### Step 2. Define destination
 
-Tell next collect where to send the data. Put following variables to `.env` file:
+Tell `next-collect` where to send the data. Put following variables to `.env` file:
 
 ```bash
 
@@ -60,39 +60,42 @@ JITSU_WRITE_KEY=...
 
 #For Plausible
 PLAUSIBLE_DOMAIN=...
-
-JITSU_WRITE_KEY
-
 ```
 
 That's it! This configuration will send all page views to destination.
 
 ### Step 3: provide user id
 
-If your app has authorization, you probably want to tell to destination what is the user.
+If your app has authorization, you probably want to identify users.
 To do so, define a custom enrich function `middleware.ts`:
 
 ```typescript
 import { nextCollectMiddleware } from "next-collect/server"
+import { getServerSession } from "next-auth"
 
 export default nextCollectMiddleware({
-  enrich: (event, { nextRequest }, prev) => {
-    //call default enrich function that resolves IP into geo info and sets Vercel deployment id and env
-    //if avaiable.
+  enrich: async (event, { nextRequest }, prev) => {
+    //call default enrich function that resolves IP into geo and etc
     prev(event)
 
     //For Supabase
-    event.userId = nextRequest.cookies.get("user")
+    const supabase = createMiddlewareClient({ req: nextRequest, res: nextResponse })
+    const session = await supabase.auth.getSession()
+    event.userId = session.data?.session?.user?.id
 
     //For NextAuth
-    event.userId = nextRequest.cookies.get("user")
+    event.userId = (await getServerSession()).user.id
 
     //For Firebase
+    //TODO:
 
     return event
   },
 })
 ```
+
+Depending on the auth framework you're using, you'll need to get a user id. Usually, userId can be
+derived from session or token that is stored in cookies or auth header
 
 #### Step 4. Sending custom events from server
 
