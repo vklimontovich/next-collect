@@ -97,7 +97,7 @@ export default nextCollectMiddleware({
 Depending on the auth framework you're using, you'll need to get a user id. Usually, userId can be
 derived from session or token that is stored in cookies or auth header
 
-#### Step 4. Sending custom events from server
+### Step 4. Sending custom events from server
 
 For the most cases you'll need to send a custom events on a certain actions. For example, once
 user signs up, you'll need to send `user_signup` event. Once user logs in, it's a good idea to
@@ -142,6 +142,38 @@ import { NextCollectProvider } from "next-collect/client"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return <NextCollectProvider>{children}</NextCollectProvider>
 }
+```
+
+---
+
+## Client side destination 
+
+`next-collect` supports client-side destinations. Some analytics platforms doesn't allow to send events from server-side, or it doesn't make sense
+to do so by the nature of the platform:
+
+* **Google Analytics 4** — [Measurment Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4) is very limited, it's not possible to send a custom page views
+* **Facebook Pixel** - to do a user matching Facebook need to have access to client cookies. Same applies for other Ad platforms
+
+To address that `next-collect` supports client-side destination. At this moment, only Google Tag destination is supported. Google Tag
+can send data to GA4 or GTM.
+
+* If you need Google Analytics only, send data straight to GA4
+* If you need many client side destination, set up a Google Tag Manager container and send data there. Setup downstream destinations such as Facebook, GA4 etc in GTM
+
+### Usage
+
+Define tags property in `NextCollectProvider`. In this example google tag container id is passed via optional environment variable `NEXT_PUBLIC_GOOGLE_TAG`:
+
+```tsx
+<NextCollectProvider
+    tags={
+        process.env.NEXT_PUBLIC_GOOGLE_TAG
+            ? [{ type: "google-tag", opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GOOGLE_TAG } }]
+            : []
+    }
+>
+    {children}
+</NextCollectProvider>;
 ```
 
 ---
