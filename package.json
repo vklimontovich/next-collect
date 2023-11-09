@@ -14,7 +14,7 @@
     "dev": "pnpm run -r --stream --parallel dev",
     "release": "pnpm build && monorel --npm-tag latest --filter './packages/next-collect'",
     "canary:publish": "monorel --filter './packages/next-collect' --version '2.0.0-alpha.{rev}.{time}' --npm-tag canary --publish",
-    "lint": "turbo run lint",
+    "lint": "pnpm run -r lint",
     "format:check": "prettier --check --config ./.prettierrc.json --ignore-path ./.prettierignore .",
     "format": "prettier --write --config ./.prettierrc.json --ignore-path ./.prettierignore .",
     "prepare": "husky install"
@@ -30,7 +30,6 @@
     "monorel": "^0.5.0",
     "prettier": "latest",
     "ts-node": "^10.9.1",
-    "turbo": "^1.10.16",
     "typescript": "^5.2.2"
   },
   "engines": {

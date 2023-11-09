@@ -36,6 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <section className="bg-zinc-50 grow">
             <div className="max-w-4xl mx-auto p-12">
               <NextCollectProvider
+                debug={true}
                 tags={
                   process.env.NEXT_PUBLIC_GOOGLE_TAG
                     ? [{ type: "google-tag", opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GOOGLE_TAG } }]

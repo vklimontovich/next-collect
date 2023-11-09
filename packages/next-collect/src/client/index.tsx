@@ -1,5 +1,5 @@
 "use client"
-import React, { createContext, PropsWithChildren, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+import React, { createContext, ReactNode, useContext, useEffect, useRef } from "react"
 import { AbsoluteUrlPath, DecomposedUrl, isDefaultPort, UrlProtocol } from "../isolibs/url"
 import {
   AnalyticsClientEvent,
@@ -12,6 +12,7 @@ import { clearCookie, getCookie, setCookie } from "./cookie"
 import { useParams, usePathname } from "next/navigation"
 import { tagDestinations, TagEventHandler, TagSpecification } from "./destinations"
 import { randomId } from "../isolibs/lib"
+
 export const EventCollectionContext = createContext<(CollectOptions & { tags?: TagEventHandler[] }) | null>(null)
 
 export interface CollectOptions {
@@ -36,21 +37,22 @@ const defaultOptions: Required<CollectOptions> = {
 
 export type NextCollectProviderOpts = {
   children: ReactNode
+  debug?: boolean
   options?: CollectOptions
   tags?: TagSpecification[]
 }
 
-const AppRouterPageViewListener: React.FC<PropsWithChildren<{ onRouteChange: () => void }>> = ({
-  onRouteChange,
-  children,
-}) => {
+
+//This hook works only with Next App Router. Ideally, we should make it work
+//for Next.js Pages Router as well
+const useLocationChange = (callback: () => void) => {
   const pathname = usePathname()
   const params = useParams()
   useEffect(() => {
-    onRouteChange()
+    callback()
   }, [pathname, params])
-  return <>{children}</>
 }
+
 
 function getAnonymousId() {
   //we should expose nc_id to a configuration at some point
@@ -64,15 +66,19 @@ function getAnonymousId() {
   return anonymousId;
 }
 
-export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ children, options, tags }) => {
+export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ children, options, tags, debug }) => {
   const Context = EventCollectionContext
-  const [initializedTags, setInitializedTags] = useState<TagEventHandler[] | undefined>(undefined)
 
-  const latestValue = useRef(initializedTags);
+  const latestValue = useRef<TagEventHandler[] | undefined>(undefined)
+  const [tagHandlers, setTagHandlers] = React.useState<TagEventHandler[] | undefined>(undefined)
 
   useEffect(() => {
+    if (debug) {
+      console.log(`Initializing ${tags?.length || 0} client-side tags`, tags)
+    }
+
     if (tags) {
-      const tagHandlers: TagEventHandler[] = tags
+      latestValue.current = tags
         .map(tag => {
           const tagDestination = typeof tag.type === "string" ? tagDestinations[tag.type] : tag.type
           if (!tagDestination) {
@@ -86,14 +92,17 @@ export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ childre
           }
         })
         .filter(Boolean) as TagEventHandler[]
-      setInitializedTags(tagHandlers)
-      latestValue.current = tagHandlers;
+      setTagHandlers(latestValue.current)
     }
   }, [])
-  const onRouteChange = useCallback(() => {
+
+  useLocationChange(() => {
+    if (debug) {
+      console.log(`Route changed to ${window.location.href}. Handlers`, tagHandlers, latestValue.current)
+    }
     if (latestValue.current) {
       if (typeof window === "undefined") {
-        throw new Error("useCollector() must be used on the client side. Window is not defined");
+        throw new Error("useCollector() must be used on the client side. Window is not defined")
       }
       const event: AnalyticsClientEvent = {
         messageId: randomId(),
@@ -111,12 +120,12 @@ export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ childre
         }
       })
     }
-  }, [initializedTags]);
-  return (
-    <AppRouterPageViewListener onRouteChange={onRouteChange}>
-      <Context.Provider value={{ ...(options || {}), tags: initializedTags }}>{children}</Context.Provider>
-    </AppRouterPageViewListener>
-  )
+  })
+  if (debug) {
+    console.log("Rendering NextCollectProvider with tagHandlers", tagHandlers)
+  }
+
+  return <Context.Provider value={{ ...(options || {}), tags: tagHandlers }}>{children}</Context.Provider>
 }
 export type EventCollectionClient = {
   analytics: AnalyticsInterface
