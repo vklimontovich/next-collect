@@ -27,7 +27,7 @@
     "husky": "^8.0.3",
     "json5": "^2.2.3",
     "minimist": "^1.2.8",
-    "monorel": "^0.3.1",
+    "monorel": "^0.5.0",
     "prettier": "latest",
     "ts-node": "^10.9.1",
     "turbo": "^1.10.16",
