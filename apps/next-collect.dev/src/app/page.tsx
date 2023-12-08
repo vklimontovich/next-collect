@@ -20,13 +20,13 @@ import CalcomLogo from "@/components/ui/icons/calcom"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
-const Integration: React.FC<{ children?: ReactNode; logo: ReactNode; href?: string }> = ({ children, logo, href }) => {
+const Integration: React.FC<{ children?: ReactNode; logo: ReactNode; href?: string, comingSoon?: boolean }> = ({ children, logo, href, comingSoon }) => {
   const content = (
     <>
       <div
         className={`p-4 rounded border border-neutral-200 bg-white w-96 $${
           href && "cursor-pointer hover:scale-[1.02] transform duration-300"
-        } `}
+        } ${comingSoon && "opacity-[0.60]"}`}
       >
         <div className="flex items-center">
           <div className="rounded-full mr-2 object-contain h-8 w-8">{logo}</div>
@@ -104,19 +104,19 @@ export default function Homepage() {
       <section className="w-full max-w-5xl mx-auto space-y-6">
         <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200">Coming Soon</h2>
         <div className="flex flex-wrap justify-center gap-4">
-          <Integration key="mixpanel" logo={mixpanelIcon}>
+          <Integration key="mixpanel" logo={mixpanelIcon} comingSoon={true}>
             Mixpanel
           </Integration>
-          <Integration key="amplitude" logo={amplitudeIcon}>
+          <Integration key="amplitude" logo={amplitudeIcon} comingSoon={true}>
             Amplitude
           </Integration>
-          <Integration key="june" logo={juneIcon}>
+          <Integration key="june" logo={juneIcon} comingSoon={true}>
             June.so
           </Integration>
-          <Integration key="ph" logo={posthogIcon}>
+          <Integration key="ph" logo={posthogIcon} comingSoon={true}>
             Posthog
           </Integration>
-          <Integration key="rs" logo={rudderstack}>
+          <Integration key="rs" logo={rudderstack} comingSoon={true}>
             Rudderstack
           </Integration>
         </div>
