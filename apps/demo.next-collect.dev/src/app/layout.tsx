@@ -10,11 +10,13 @@ import { nextCollectGithubURL } from "@/lib/lib"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "next-collect demo",
-  description: "next-collect demo",
+  title: "NextCollect demo",
+  description: "NextCollect demo",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  console.log(`NEXT_PUBLIC_GA4_MEASUREMENT_ID=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`)
+  console.log(`NEXT_PUBLIC_GTM_CONTAINER_ID=${process.env.NEXT_PUBLIC_GTM_CONTAINER_ID}`)
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -37,11 +39,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="max-w-4xl mx-auto p-12">
               <NextCollectProvider
                 debug={true}
-                tags={
-                  process.env.NEXT_PUBLIC_GOOGLE_TAG
-                    ? [{ type: "google-tag", opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GOOGLE_TAG } }]
-                    : []
-                }
+                tags={[
+                  process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID && {
+                    type: "ga4",
+                    opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID },
+                  },
+                  process.env.NEXT_PUBLIC_GTM_CONTAINER_ID && {
+                    type: "gtm",
+                    opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID },
+                  },
+                ]}
               >
                 {children}
               </NextCollectProvider>

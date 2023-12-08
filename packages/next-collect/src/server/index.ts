@@ -19,7 +19,7 @@ import {
 } from "../isolibs/url"
 import { NextMiddlewareResult } from "next/dist/server/web/types"
 import {
-  EventEnrichmentFunction,
+  EventHydrationFunction,
   EventFilterFunction,
   NextCollectConfig,
   ServerDestinationLike,
@@ -212,7 +212,7 @@ function getVercelGeo(req: ServerRequest): Geo {
   }
 }
 
-const defaultEnrichment: EventEnrichmentFunction = async (event, req) => {
+const defaultHydration: EventHydrationFunction = async (event, req) => {
   if (req.header("x-vercel-ip-country")) {
     event.context.geo = getVercelGeo(req)
   }
@@ -319,8 +319,8 @@ async function eventPipeline(
   if (!event.timestamp) {
     event.timestamp = event.sentAt || new Date().toISOString()
   }
-  const eventEnrichmentResult = (opts.enrich || defaultEnrichment)(event, req, ev =>
-    defaultEnrichment(ev, req, () => {})
+  const eventEnrichmentResult = (opts.hydrate || defaultHydration)(event, req, ev =>
+    defaultHydration(ev, req, () => {})
   )
   if (eventEnrichmentResult instanceof Promise) {
     //wait if needed
@@ -437,7 +437,7 @@ function getDestinationChain(opts: {
   async?: boolean
   debugRoute?: boolean
   destinations?: ServerDestinationLike[]
-  enrich?: EventEnrichmentFunction
+  hydrate?: EventHydrationFunction
   cookieName: string
   apiRoute: string
   middleware?: NextMiddleware

@@ -39,9 +39,11 @@ export type NextCollectProviderOpts = {
   children: ReactNode
   debug?: boolean
   options?: CollectOptions
-  tags?: TagSpecification[]
+  /**
+   * undefined | "" means skip the tag. Useful for proces.env.VALUE && { type: "tag", opts: { ... } } syntax
+   */
+  tags?: (TagSpecification | undefined | "")[]
 }
-
 
 //This hook works only with Next App Router. Ideally, we should make it work
 //for Next.js Pages Router as well
@@ -53,17 +55,16 @@ const useLocationChange = (callback: () => void) => {
   }, [pathname, params])
 }
 
-
 function getAnonymousId() {
   //we should expose nc_id to a configuration at some point
   //user can change a cookie name on server side, it should be possible here to
-  let anonymousId = getCookie('nc_id');
+  let anonymousId = getCookie("nc_id")
   if (!anonymousId) {
     console.log(`Can't find nc_id cookie, generating a new one: ` + window.document.cookie)
-    anonymousId = randomId();
-    setCookie(`nc_id`, anonymousId);
+    anonymousId = randomId()
+    setCookie(`nc_id`, anonymousId)
   }
-  return anonymousId;
+  return anonymousId
 }
 
 export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ children, options, tags, debug }) => {
@@ -79,7 +80,9 @@ export const NextCollectProvider: React.FC<NextCollectProviderOpts> = ({ childre
 
     if (tags) {
       latestValue.current = tags
-        .map(tag => {
+        .filter(tag => !!tag)
+        .map(_tag => {
+          const tag = _tag as TagSpecification
           const tagDestination = typeof tag.type === "string" ? tagDestinations[tag.type] : tag.type
           if (!tagDestination) {
             console.warn("Unknown tag type", tag.type)

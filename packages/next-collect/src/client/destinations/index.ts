@@ -1,5 +1,6 @@
 import { AnalyticsClientEvent } from "segment-protocol"
-import { googleTag } from "./google-tag"
+import { ga4Destination } from "./ga4"
+import { gtmDestination } from "./gtm"
 
 export type TagEventHandler = {
   on: (event: AnalyticsClientEvent) => void
@@ -14,5 +15,6 @@ export type TagSpecification<T extends Record<string, any> = Record<string, any>
 }
 
 export const tagDestinations: Record<string, TagDestination> = {
-  "google-tag": googleTag as any,
+  "ga4": ga4Destination as any,
+  "gtm": gtmDestination as any
 }

@@ -115,7 +115,7 @@ export type ServerRequestContext<T extends RequestType = NextRequest> = ServerRe
     clearCookie: (name: string) => void
   }
 
-export type EventEnrichmentFunction = (
+export type EventHydrationFunction = (
   event: AnalyticsServerEvent,
   req: ServerRequestContext,
   prev: (event: AnalyticsServerEvent) => Promise<void> | void
@@ -177,5 +177,11 @@ export type NextCollectConfig = {
    */
   filter?: EventFilterFunction
 
-  enrich?: EventEnrichmentFunction
+
+  /**
+   * 'Hydration' function to change the event before it was sent to destination. Examples of changes:
+   *  - Add user id based on cookie or http header
+   *  - Add custom properties like environment, app version, etc
+   */
+  hydrate?: EventHydrationFunction
 }

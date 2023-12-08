@@ -3,12 +3,13 @@
 
 # Overview
 
-`next-collect` is a library for server-side analytics integration for Next.Js. It works
-with following platforms:
+`next-collect` is a library for server-side analytics integration for Next.Js. It works with following platforms:
 
 - [Jitsu](https://jitsu.com)
 - [Segment](https://segment.com)
 - [Plausible.io](https://plausible.io)
+- Google Tag Manager _(client-side)_
+- GA4 _(client-side)_
 
 Following integrations are coming soon:
 
@@ -19,6 +20,8 @@ Following integrations are coming soon:
 - Rudderstack
 
 If you're not familiar with server-side event collection, please read [this article](https://jitsu.com/blog/server-side-tracking) first.
+
+NextCollect uses [Next.Js middleware](https://nextjs.org/docs/api-routes/api-middlewares) under the hood
 
 ## Quick Start
 
@@ -67,15 +70,15 @@ That's it! This configuration will send all page views to destination.
 ### Step 3: provide user id
 
 If your app has authorization, you probably want to identify users.
-To do so, define a custom enrich function `middleware.ts`:
+To do so, define a custom `augument` hook in the `middleware.ts`:
 
 ```typescript
 import { nextCollectMiddleware } from "next-collect/server"
 import { getServerSession } from "next-auth"
 
 export default nextCollectMiddleware({
-  enrich: async (event, { nextRequest }, prev) => {
-    //call default enrich function that resolves IP into geo and etc
+  hydrate: async (event, { nextRequest }, prev) => {
+    //call default hydration function that resolves IP into geo and etc
     prev(event)
 
     //For Supabase
@@ -146,33 +149,41 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
 ---
 
-## Client side destination 
+## Client side destination
 
 `next-collect` supports client-side destinations. Some analytics platforms doesn't allow to send events from server-side, or it doesn't make sense
 to do so by the nature of the platform:
 
-* **Google Analytics 4** — [Measurment Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4) is very limited, it's not possible to send a custom page views
-* **Facebook Pixel** - to do a user matching Facebook need to have access to client cookies. Same applies for other Ad platforms
+- **Google Analytics 4** — [Measurment Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4) is very limited, it's not possible to send a custom page views
+- **Facebook Pixel** - to do a user matching Facebook need to have access to client cookies. Same applies for other Ad platforms
 
-To address that `next-collect` supports client-side destination. At this moment, only Google Tag destination is supported. Google Tag
-can send data to GA4 or GTM.
+To address that, `next-collect` supports client-side destination. At this moment, NextCollect supports GTM and GA4 destinations.
 
-* If you need Google Analytics only, send data straight to GA4
-* If you need many client side destination, set up a Google Tag Manager container and send data there. Setup downstream destinations such as Facebook, GA4 etc in GTM
+- If you need Google Analytics only, send data straight to GA4. Use `google-tag` destination and pass GA4 measurement id to `containerId` (it should start with `G-`)
+- If you need many client side destination, set up a Google Tag Manager. Then add downstream destinations such as Facebook, GA4 etc in GTM. Use `google-tag` destination and pass GTM container id
+  to `containerId` (it should start with `GTM-`)
+
+> Note: our advice is to set up *one* client-side destination — Google Tag Manager. If you need to send data to Facebook, GA4 and other platforms, set up downstream destinations in GTM.
 
 ### Usage
 
-Define tags property in `NextCollectProvider`. In this example google tag container id is passed via optional environment variable `NEXT_PUBLIC_GOOGLE_TAG`:
+Define tags property in `NextCollectProvider`. In this example both GTM and GA4 are used:
 
 ```tsx
 <NextCollectProvider
-    tags={
-        process.env.NEXT_PUBLIC_GOOGLE_TAG
-            ? [{ type: "google-tag", opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GOOGLE_TAG } }]
-            : []
+  debug={true}
+  tags={[
+    process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID && {
+      type: "ga4",
+      opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID }
+    },
+    process.env.NEXT_PUBLIC_GTM_CONTAINER_ID && {
+      type: "gtm",
+      opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID }
     }
+  ]}
 >
-    {children}
+
 </NextCollectProvider>;
 ```
 
@@ -181,7 +192,8 @@ Define tags property in `NextCollectProvider`. In this example google tag contai
 ## Advanced Configuration
 
 `next-collect` is deeply customizable. It's possible to define a custom enrichment, provide custom destination,
-change `/api/ev` route and many more. Please see `NextCollectConfig` type for a full list of options. Pass
+change `/api/ev` route and many more. Please see [`NextCollectConfig`](https://github.com/vklimontovich/next-collect/blob/v2.0/packages/next-collect/src/server/config.ts#L128) type for a full list of
+options. Pass
 an instance of `NextCollectConfig` to `nextCollectMiddleware`
 
 ## Contributing
