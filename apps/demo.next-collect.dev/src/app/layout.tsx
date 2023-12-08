@@ -15,8 +15,6 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
-  console.log(`NEXT_PUBLIC_GA4_MEASUREMENT_ID=${process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID}`)
-  console.log(`NEXT_PUBLIC_GTM_CONTAINER_ID=${process.env.NEXT_PUBLIC_GTM_CONTAINER_ID}`)
   return (
     <html lang="en">
       <body className={inter.className}>

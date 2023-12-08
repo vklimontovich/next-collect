@@ -36,7 +36,7 @@ const defaultOptions: Required<CollectOptions> = {
 }
 
 export type NextCollectProviderOpts = {
-  children: ReactNode
+  children?: ReactNode
   debug?: boolean
   options?: CollectOptions
   /**
