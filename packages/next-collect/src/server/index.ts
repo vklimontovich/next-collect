@@ -12,15 +12,14 @@ import {
   AbsoluteUrlPath,
   DecomposedUrl,
   getPrimaryDomain,
-  getQueryString,
   getUrlString,
   isDefaultPort,
   UrlProtocol,
 } from "../isolibs/url"
 import { NextMiddlewareResult } from "next/dist/server/web/types"
 import {
-  EventHydrationFunction,
   EventFilterFunction,
+  EventHydrationFunction,
   NextCollectConfig,
   ServerDestinationLike,
   ServerRequest,
@@ -77,8 +76,8 @@ function getServerRequest(req: NextRequest): ServerRequest {
       return typeof cookie === "string"
         ? decodeCookie(cookie)
         : typeof cookie === "object" && cookie.value
-        ? cookie.value
-        : undefined
+          ? cookie.value
+          : undefined
     },
     q: s => req.nextUrl.searchParams.get(s) || undefined,
     header(s: string): string | undefined {
@@ -173,14 +172,21 @@ export function setAnonymousId(ctx: ServerRequestContext, cookieName: string, co
 }
 
 export type Geo = {
-  country?: string
-  region?: string
-  city?: string
+  country?: {
+    code: string
+  }
+  region?: {
+    code: string
+  }
+  city?: {
+    name: string
+  }
   timezone?: string
   postalCode?: string
   location?: {
-    lat?: number
-    lon?: number
+    timezone?: string
+    latitude?: number
+    longitude?: number
   }
 }
 
@@ -198,16 +204,24 @@ function getVercelEnvironment(): { deployId?: string; env?: string } | undefined
 }
 
 function getVercelGeo(req: ServerRequest): Geo {
-  const latitude = req.header("x-vercel-ip-latitude")
-  const longitude = req.header("x-vercel-ip-longitude")
+  const vercelLatitude = req.header("x-vercel-ip-latitude")
+  const vercelLongitude = req.header("x-vercel-ip-longitude")
+  const vercelCountry = req.header("x-vercel-ip-country")
+  const vercelRegion = req.header("x-vercel-ip-country-region")
+  const vercelCity = req.header("x-vercel-ip-city")
+  const vercelTimezone = req.header("x-vercel-ip-timezone")
   return {
-    country: req.header("x-vercel-ip-country"),
-    region: req.header("x-vercel-ip-country-region"),
-    city: req.header("x-vercel-ip-city"),
-    timezone: req.header("x-vercel-ip-timezone"),
+    country: vercelCountry ? { code: vercelCountry } : undefined,
+    region: vercelRegion ? { code: vercelRegion } : undefined,
+    city: vercelCity ? { name: vercelCity } : undefined,
+    timezone: vercelTimezone,
     location:
-      longitude || latitude
-        ? { lat: latitude ? parseFloat(latitude) : undefined, lon: longitude ? parseFloat(longitude) : undefined }
+      vercelLongitude || vercelLatitude || vercelTimezone
+        ? {
+            timezone: vercelTimezone,
+            latitude: vercelLatitude ? parseFloat(vercelLatitude) : undefined,
+            longitude: vercelLongitude ? parseFloat(vercelLongitude) : undefined,
+          }
         : undefined,
   }
 }

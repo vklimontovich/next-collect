@@ -21,6 +21,6 @@ const posthogLogo = (
       fill="#F54E00"
     />
   </svg>
-);
+)
 
-export default posthogLogo;
+export default posthogLogo

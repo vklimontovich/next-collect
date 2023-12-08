@@ -163,7 +163,7 @@ To address that, `next-collect` supports client-side destination. At this moment
 - If you need many client side destination, set up a Google Tag Manager. Then add downstream destinations such as Facebook, GA4 etc in GTM. Use `google-tag` destination and pass GTM container id
   to `containerId` (it should start with `GTM-`)
 
-> Note: our advice is to set up *one* client-side destination — Google Tag Manager. If you need to send data to Facebook, GA4 and other platforms, set up downstream destinations in GTM.
+> Note: our advice is to set up _one_ client-side destination — Google Tag Manager. If you need to send data to Facebook, GA4 and other platforms, set up downstream destinations in GTM.
 
 ### Usage
 
@@ -175,16 +175,14 @@ Define tags property in `NextCollectProvider`. In this example both GTM and GA4 
   tags={[
     process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID && {
       type: "ga4",
-      opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID }
+      opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID },
     },
     process.env.NEXT_PUBLIC_GTM_CONTAINER_ID && {
       type: "gtm",
-      opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID }
-    }
+      opts: { debug: true, containerId: process.env.NEXT_PUBLIC_GTM_CONTAINER_ID },
+    },
   ]}
->
-
-</NextCollectProvider>;
+></NextCollectProvider>
 ```
 
 ---

@@ -38,15 +38,17 @@ const Tabs: React.FC<TabsProps> = ({ tabs, value, onChange }) => {
   )
 }
 
-
-const CopyButton: React.FC<{ text: string }> = ({text}) => {
-  const [copied, setCopied] = useState(false);
+const CopyButton: React.FC<{ text: string }> = ({ text }) => {
+  const [copied, setCopied] = useState(false)
   return (
-    <button className="h-5" onClick={() => {
-      navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1000);
-    }}>
+    <button
+      className="h-5"
+      onClick={() => {
+        navigator.clipboard.writeText(text)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 1000)
+      }}
+    >
       {!copied ? (
         <Copy className="w-full h-full text-neutral-400" />
       ) : (

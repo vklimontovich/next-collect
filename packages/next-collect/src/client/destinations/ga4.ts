@@ -22,7 +22,6 @@ export function validateContainerId(containerId: string): GoogleAnalyticsMeasure
   throw new Error(`To be valid, Google Tag containerId must start with 'GTM-' or 'G-'. Got: ${containerId}`)
 }
 
-
 const defaultScriptSrc = "https://www.googletagmanager.com/gtag/js"
 
 type GtmState = "fresh" | "loading" | "loaded" | "failed"
@@ -42,7 +41,7 @@ export const ga4Destination: TagDestination<GoogleTagDestinationCredentials> = {
     if (opts.debug) {
       console.log(`Initializing Google Tag Destination, state=${getGoogleTagState(tagId)}`, opts)
     }
-    validateContainerId(opts.containerId);
+    validateContainerId(opts.containerId)
     const isGTM = opts.containerId.indexOf("GTM-") === 0
     if (getGoogleTagState(tagId) === "fresh") {
       const win = window as any
@@ -119,9 +118,9 @@ export const ga4Destination: TagDestination<GoogleTagDestinationCredentials> = {
               ...(payload.traits || {}),
             }
             gtag("set", opts.containerId, traits)
-;            if (opts.debug) {
+            if (opts.debug) {
               console.log(`gtag('config', '${opts.containerId}', ${JSON.stringify(props)})`)
-;            }
+            }
             break
         }
       },

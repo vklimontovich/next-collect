@@ -1,8 +1,7 @@
-
 // @ts-nocheck
 // the body of the function is copy-paste from the GTM website, it's JS, not TS
 
-export function initializeGTM(containerId: string, {dataLayerName = "dataLayer"}: {dataLayerName?: string} = {}) {
+export function initializeGTM(containerId: string, { dataLayerName = "dataLayer" }: { dataLayerName?: string } = {}) {
   //this weird code is a copy-paste from the GTM website
   ;(function (w, d, s, l, i) {
     w[l] = w[l] || []
@@ -17,9 +16,7 @@ export function initializeGTM(containerId: string, {dataLayerName = "dataLayer"}
     j.src = "https://www.googletagmanager.com/gtm.js?id=" + i + dl
     f.parentNode.insertBefore(j, f)
   })(window, document, "script", dataLayerName, containerId)
-  return window[dataLayerName];
+  return window[dataLayerName]
 }
 
-export default initializeGTM;
-
-
+export default initializeGTM

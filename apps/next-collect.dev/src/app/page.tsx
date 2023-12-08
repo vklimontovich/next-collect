@@ -20,7 +20,12 @@ import CalcomLogo from "@/components/ui/icons/calcom"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 
-const Integration: React.FC<{ children?: ReactNode; logo: ReactNode; href?: string, comingSoon?: boolean }> = ({ children, logo, href, comingSoon }) => {
+const Integration: React.FC<{ children?: ReactNode; logo: ReactNode; href?: string; comingSoon?: boolean }> = ({
+  children,
+  logo,
+  href,
+  comingSoon,
+}) => {
   const content = (
     <>
       <div

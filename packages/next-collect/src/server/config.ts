@@ -46,8 +46,8 @@ export type RequestType = NextApiRequest | NextRequest | undefined
 export type NextRequestUnion<T extends RequestType = undefined> = T extends NextApiRequest
   ? NextRequest_Api
   : T extends NextRequest
-  ? NextRequest_Default
-  : NextRequest_Default | NextRequest_Api
+    ? NextRequest_Default
+    : NextRequest_Default | NextRequest_Api
 
 /**
  * Server request - NextApiRequest or NextRequest with most common properties
@@ -176,7 +176,6 @@ export type NextCollectConfig = {
    * @param req
    */
   filter?: EventFilterFunction
-
 
   /**
    * 'Hydration' function to change the event before it was sent to destination. Examples of changes:

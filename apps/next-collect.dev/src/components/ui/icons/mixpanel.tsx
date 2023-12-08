@@ -5,4 +5,4 @@ export default (
     <circle cx="16" cy="14" r="2" fill="white" />
     <circle cx="22" cy="14" r="1" fill="white" />
   </svg>
-);
+)

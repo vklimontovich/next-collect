@@ -14,4 +14,4 @@ export default (
       ></path>
     </svg>
   </svg>
-);
+)

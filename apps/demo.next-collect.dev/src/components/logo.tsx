@@ -9,13 +9,7 @@ export const NextCollectLogo: React.FC<{ className?: string }> = ({ className })
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M163.567 218.701H328.97"
-        stroke="white"
-        strokeWidth="24"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M163.567 218.701H328.97" stroke="white" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M492.65 356.539H354.814C351.008 356.539 347.922 359.625 347.922 363.431V487.483C347.922 491.289 351.008 494.375 354.814 494.375H492.65C496.456 494.375 499.541 491.289 499.541 487.483V363.431C499.541 359.625 496.456 356.539 492.65 356.539Z"
         stroke="white"
@@ -23,13 +17,7 @@ export const NextCollectLogo: React.FC<{ className?: string }> = ({ className })
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M499.541 425.455H347.922"
-        stroke="white"
-        strokeWidth="24"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
+      <path d="M499.541 425.455H347.922" stroke="white" strokeWidth="24" strokeLinecap="round" strokeLinejoin="round" />
       <path
         d="M465.082 404.78C472.695 404.78 478.866 398.609 478.866 390.996C478.866 383.384 472.695 377.213 465.082 377.213C457.47 377.213 451.299 383.384 451.299 390.996C451.299 398.609 457.47 404.78 465.082 404.78Z"
         fill="white"

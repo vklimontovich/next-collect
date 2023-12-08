@@ -1,6 +1,6 @@
 import { TagDestination } from "./index"
 
-import initializeGTM from "./gtm-inititializer";
+import initializeGTM from "./gtm-inititializer"
 
 export type GoogleTagManagerContainerId = `GTM-${string}`
 
@@ -19,7 +19,6 @@ export function validateContainerId(containerId: string): GoogleTagManagerContai
   }
   throw new Error(`To be valid, Google Tag containerId must start with 'GTM-'. Got: ${containerId}`)
 }
-
 
 type GoogleTagState = "fresh" | "loading" | "loaded" | "failed"
 

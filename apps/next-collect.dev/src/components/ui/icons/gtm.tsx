@@ -24,4 +24,4 @@ export default (
       <circle fill="#246FDB" cx="95.5" cy="162.5" r="21.5" />
     </g>
   </svg>
-);
+)

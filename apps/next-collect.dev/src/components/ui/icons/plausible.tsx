@@ -1,11 +1,5 @@
 export default (
-  <svg
-    width="100%"
-    height="100%"
-    viewBox="0 0 1000 1000"
-    version="1.1"
-    xmlns="http://www.w3.org/2000/svg"
-  >
+  <svg width="100%" height="100%" viewBox="0 0 1000 1000" version="1.1" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <radialGradient
         cx="79.1305263%"
@@ -15,7 +9,7 @@ export default (
         r="96.9897763%"
         id="radialGradient-1"
       >
-        <stop stopColor="#2440E6" offset="0%"/>
+        <stop stopColor="#2440E6" offset="0%" />
         <stop stopColor="#5661B3" offset="100%"></stop>
       </radialGradient>
       <radialGradient

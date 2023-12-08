@@ -3,7 +3,8 @@ import { NextCollectProvider } from "next-collect/client"
 
 export const metadata = {
   title: "NextCollect",
-  description: "NextCollect is a powerful Next.js library for integrating your application with your favourite analytics tools",
+  description:
+    "NextCollect is a powerful Next.js library for integrating your application with your favourite analytics tools",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

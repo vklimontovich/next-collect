@@ -15,6 +15,6 @@ export type TagSpecification<T extends Record<string, any> = Record<string, any>
 }
 
 export const tagDestinations: Record<string, TagDestination> = {
-  "ga4": ga4Destination as any,
-  "gtm": gtmDestination as any
+  ga4: ga4Destination as any,
+  gtm: gtmDestination as any,
 }
