@@ -8,3 +8,4 @@
 **/tsconfig.paths.json
 **/generated/
 **/.next/
+.pnpm-store

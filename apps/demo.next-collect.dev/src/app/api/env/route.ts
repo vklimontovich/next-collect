@@ -1,5 +1,5 @@
 // src/pages/api/sign-up.ts
-import { NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse, userAgent } from "next/server"
 import { nextCollect } from "next-collect/server"
 import { nextCollectConfig } from "@/middleware"
 import { isTruish } from "@/lib/lib"
@@ -27,5 +27,8 @@ export async function GET(req: NextRequest, res: NextResponse) {
     headers: disableDebugInfo ? undefined : sortByKey(Object.fromEntries(req.headers.entries())),
     cookies: sortByKey(Object.fromEntries(req.cookies.getAll().map(c => [c.name, c.value]))),
     nodeVersion: process.versions.node,
+    geo: req.geo,
+    userAgent: req.headers.get("user-agent"),
+    userAgentInfo: userAgent(req),
   })
 }
