@@ -54,6 +54,12 @@ jobs:
       - name: Build and test
         run: pnpm run build && pnpm run test
 
+
+      - name: Prepare git for tagging the release
+        run: |
+          git config --global user.name "Github Actions Bot"
+          git config --global user.email "username@users.noreply.github.com"
+
       - name: Publish canary release to NPM repository
         run: pnpm canary:publish
         env:
