@@ -70,8 +70,8 @@ export default function Homepage() {
         />
         <h1 className="text-5xl font-bold text-gray-800 ">NextCollect</h1>
       </div>
-      <p className="max-w-lg mx-auto text-neutral-600 text-xl">
-        A powerful Next.js library for integrating your application with your favourite analytics tools.
+      <p className="max-w-lg mx-auto text-neutral-600 text-2xl">
+        The easiest way to add analytics to your Next.js app. Powered by middleware.
       </p>
       <Installer className="w-96" />
       <div className="flex space-x-4">
