@@ -83,7 +83,7 @@ export const Installer: React.FC<{ className?: string }> = ({ className }) => {
       />
       <Command command={`${packageManager} ${packageManager === "npm" ? "install" : "add"} next-collect`}>
         <span className="text-red-700">{packageManager}</span> {packageManager === "npm" ? "install" : "add"}{" "}
-        next-collect
+        next-collect@beta
       </Command>
     </div>
   )

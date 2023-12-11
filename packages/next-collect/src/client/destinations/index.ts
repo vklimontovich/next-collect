@@ -9,8 +9,9 @@ export type TagDestination<T extends Record<string, any> = Record<string, any>> 
   create: (opts: T) => TagEventHandler
 }
 
+export type KnownTagDestination = "ga4" | "gtm"
 export type TagSpecification<T extends Record<string, any> = Record<string, any>> = {
-  type: string | TagDestination<T>
+  type: KnownTagDestination | string | TagDestination<T>
   opts?: T
 }
 
