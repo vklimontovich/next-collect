@@ -10,6 +10,7 @@ on:
 
 jobs:
   cache-and-install:
+    name: Build, test and publish canary release
     runs-on: ubuntu-latest
 
     steps:
@@ -53,7 +54,6 @@ jobs:
 
       - name: Build and test
         run: pnpm run build && pnpm run test
-
 
       - name: Prepare git for tagging the release
         run: |
